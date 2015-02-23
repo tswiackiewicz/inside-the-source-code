@@ -116,7 +116,7 @@ Procedura kompilacji pluginu wygląda następująco:
 
 	[Percona]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
 
-<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="57-60, 1" data-gist-highlight-line="1" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="57-62" data-gist-highlight-line="1" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
 
 Przedstawiona powyżej procedura bardzo dobrze sprawdziła się w przypadku środowiska Mac OS X Yosemite, ale niestety problemy
 wystąpiły w Ubuntu 14.04 (Percona-Server zainstalowany za pomocą apt-get):
