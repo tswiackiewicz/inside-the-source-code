@@ -1,0 +1,94 @@
+<p align="justify">Aby możliwe było wygenerowanie indeksu pozwalającego na sprawne i szybkie wyszukiwanie, konieczne jest dostarczenie danych w ustalonym formacie. W przypadku silnika wyszukiwania znanego jako <i><b>SphinxSearch</b></i>, podstawowym źródłem danych jest baza danych, np. MySQL. Nie zawsze jednak możliwe jest dostarczenie danych w ten sposób - przykładowo indeksowane dane przechowywane są na różnych serwerach bądź źródle danych nie wspieranym przez <i>SphinxSearch</i>. W takiej sytuacji przydatna jest możliwość dostarczenia danych (dla <i>indeksera</i>) w formacie XML. Rozwiązanie to jest bardzo elastyczne (możemy generować dane w dowolny sposób), ale niestety dużo wolniejsze niż indeksowanie bezpośrednio z bazy danych. Kompromisem może być natomiast
+indeksowanie danych ze źródła w formacie <i>TSV</i> - szybsze niż to z <i>XMLa</i> a przy tym równie elastyczne.</p>
+
+<p align="justify">Definicja źródła danych w formacie <b>TSV</b> (<i>ang. tab-separated values</i>) jest bardzo podobna do tej dla formatu <i>xmlpipe</i>. Oprócz określenia typu (<i><b>tsvpipe</b></i>), komendy za pomocą której dostarczone zostaną dane (<i><b>tsvpipe_command</b></i>) niezbędne jest zdefiniowanie poszczególnych pól i atrybutów.</p>
+
+<p>Przykładowo:</p>
+
+<code data-gist-id="b4794ae38b2ad7ced9d2" data-gist-line="1-5, 81-95" data-gist-highlight-line="83-84, 86, 89" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p align="justify">Indeksowane dane powinny być zgodne z ustalonym formatem: pierwsza kolumna to identyfikator dokumentu a następnie wartości o typach danych w kolejności zdefiniowanej w konfiguracji.</p> 
+
+<code data-gist-id="453456644cdebf9ef1d5" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p align="justify">Pierwsze spostrzeżenie, jeśli chodzi o porównanie szybkości indeksowania danych w formacie <i>XML</i> i <i>TSV</i>, jest takie że format XML charakteryzuje duża nadmiarowość danych (tagi XML, konieczność escape'owania danych) która nie występuje w przypadku formatu TSV. Ponadto <i>xmlpipe</i> wymaga, aby poszczególne węzły dokumentu XML (oraz ich atrybuty) zostały zmapowane na pola i atrybuty zawarte w definicji indeksu wyodrębniając jednocześnie ich wartości z dostarczonego zbioru danych. Uwzględniając te założenia, przewaga w szybkości indeksowania TSV nad XML powinna rosnąć wraz ze wzrostem liczby indeksowanych dokumentów. A jak to wygląda w praktyce?</p>
+
+<p>Przeprowadziłem następujące testy:<br />
+
+<ul>
+<li>indeksowanie z przygotowanego pliku statycznego w formacie TSV / XML</li>
+<li>dane dla indeksera dostarczane są dynamicznie przez skrypt generujący dane w formacie TSV / XML</li>
+</ul>
+</p>
+
+<p align="justify">Dodatkowo w pierwszym przypadku zmierzony został czas generowania danych. Oczywiście wszystkie testy przeprowadzone zostały w jednolitym środowisku, dane generowane były jednolity sposób (skrypt do generowania testowych danych <a href="https://gist.github.com/thejoyboy/2da3788f7a3520b4c4fd" target="_blank">generate_data.php</a>).</p>
+
+<p align="justify">Wyniki:<br />
+
+<br />
+I. plik statyczny (test.tsv, test.xml)
+<br />
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr style="font-weight: bold;">
+<td style=" border-bottom: 2px solid black;"></td><td style=" border-bottom: 2px solid black;"></td><td style="border-bottom: 2px solid black; text-align: right;">100k</td><td style="border-bottom: 2px solid black; text-align: right;">500k</td><td style="border-bottom: 2px solid black; text-align: right;">1M</td><td style="border-bottom: 2px solid black; text-align: right;">2.5M</td><td style="border-bottom: 2px solid black; text-align: right;">5M</td><td style="border-bottom: 2px solid black; text-align: right;">10M</td>
+</tr>
+<tr>
+<td rowspan="2" style="vertical-align: top; padding-right: 10px; padding-top: 3px;">TSV</td><td style="padding-right: 10px; padding-top: 3px;">czas generowania danych</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">1.411s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">6.890s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">13.456s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">32.921s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">67.298s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">143.932s</td>
+</tr>
+<tr>
+<td style="padding-right: 10px;">czas indeksowania danych</td><td style="padding-left: 10px; text-align: right;">3.023s</td><td style="padding-left: 10px; text-align: right;">15.950s</td><td style="padding-left: 10px; text-align: right;">32.986s</td><td style="padding-left: 10px; text-align: right;">88.815s</td><td style="padding-left: 10px; text-align: right;">188.468s</td><td style="padding-left: 10px; text-align: right;">399.714s</td>
+</tr>
+<tr>
+<td rowspan="2" style="vertical-align: top; padding-right: 10px;">XML</td><td style="padding-right: 10px;">czas generowania danych</td><td style="padding-left: 10px; text-align: right;">1.687s</td><td style="padding-left: 10px; text-align: right;">7.693s</td><td style="padding-left: 10px; text-align: right;">15.830s</td><td style="padding-left: 10px; text-align: right;">38.672s</td><td style="padding-left: 10px; text-align: right;">78.685s</td><td style="padding-left: 10px; text-align: right;">155.954s</td>
+</tr>
+<tr>
+<td style="padding-right: 10px;">czas indeksowania danych</td><td style="padding-left: 10px; text-align: right;">3.097s</td><td style="padding-left: 10px; text-align: right;">15.363s</td><td style="padding-left: 10px; text-align: right;">32.249s</td><td style="padding-left: 10px; text-align: right;">87.420s</td><td style="padding-left: 10px; text-align: right;">193.434s</td><td style="padding-left: 10px; text-align: right;">469.150s</td>
+</tr>
+<tr>
+<td rowspan="2" style="padding-right: 10px;">TSV<br />vs XML</td><td style="padding-right: 10px;">czas generowania danych</td><td style="padding-left: 10px; text-align: right; color: #009900;">-16.36%</td><td style="padding-left: 10px; text-align: right; color: #009900;">-10.43%</td><td style="padding-left: 10px; text-align: right; color: #009900;">-14.99%</td><td style="padding-left: 10px; text-align: right; color: #009900;">-14,87%</td><td style="padding-left: 10px; text-align: right; color: #009900;">-14,47%</td><td style="padding-left: 10px; text-align: right; color: #009900;">-7,71%</td>
+</tr>
+<tr>
+<td style="padding-right: 10px;">czas indeksowania danych</td><td style="padding-left: 10px; text-align: right; color: #009900;">-2.39%</td><td style="padding-left: 10px; text-align: right; color: #FF0000;">+3.82%</td><td style="padding-left: 10px; text-align: right; color: #FF0000;">+2.28%</td><td style="padding-left: 10px; text-align: right; color: #FF0000;">+1.59%</td><td style="padding-left: 10px; text-align: right; color: #009900;">-2.57%</td><td style="padding-left: 10px; text-align: right; color: #009900;">-14.80%</td>
+</tr>
+</table>
+<br />
+II. dane generowane za pomocą skryptu (generate_data.php)
+<br /><br />
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr style="font-weight: bold;">
+<td style=" border-bottom: 2px solid black;"></td><td style=" border-bottom: 2px solid black;"></td><td style="border-bottom: 2px solid black; text-align: right;">100k</td><td style="border-bottom: 2px solid black; text-align: right;">500k</td><td style="border-bottom: 2px solid black; text-align: right;">1M</td><td style="border-bottom: 2px solid black; text-align: right;">2.5M</td><td style="border-bottom: 2px solid black; text-align: right;">5M</td><td style="border-bottom: 2px solid black; text-align: right;">10M</td>
+</tr>
+<tr>
+<td style="padding-right: 10px; padding-top: 3px;">TSV</td><td style="padding-right: 10px; padding-top: 3px;">czas indeksowania danych</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">4.863s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">20.501s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">42.556s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">112.720s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">232.924s</td><td style="padding-left: 10px; text-align: right; padding-top: 3px;">499.994s</td>
+</tr>
+<tr>
+<td style="padding-right: 10px;">XML</td><td style="padding-right: 10px;">czas indeksowania danych</td><td style="padding-left: 10px; text-align: right;">4.403s</td><td style="padding-left: 10px; text-align: right;">22.061s</td><td style="padding-left: 10px; text-align: right;">45.771s</td><td style="padding-left: 10px; text-align: right;">119.788s</td><td style="padding-left: 10px; text-align: right;">245.638s</td><td style="padding-left: 10px; text-align: right;">525.838s</td>
+</tr>
+<tr>
+<td style="padding-right: 10px;">TSV vs XML</td><td style="padding-right: 10px; vertical-align: top;">czas indeksowania danych</td><td style="padding-left: 10px; text-align: right; vertical-align: top; color: #FF0000;">+9.46%</td><td style="padding-left: 10px; text-align: right; vertical-align: top; color: #009900">-7.07%</td><td style="padding-left: 10px; text-align: right; vertical-align: top; color: #009900"">-7.02%</td><td style="padding-left: 10px; text-align: right; vertical-align: top; color: #009900"">-5.90%</td><td style="padding-left: 10px; text-align: right; vertical-align: top; color: #009900"">-5.18%</td><td style="padding-left: 10px; text-align: right; vertical-align: top; color: #009900"">-4.91%</td>
+</tr>
+
+</table>
+</p>
+
+<p align="justify">Wyniki przeprowadzonych testów potwierdzają postawioną tezę - indeksowanie danych w formacie <i>TSV</i> jest szybsze niż <i>XML</i>. Różnice czasowe w szybkości indeksowania wzrastają razem z liczbą indeksowanych dokumentów. Składa się na to dłuższy czas generowania danych w formacie XML (różnice mogą sięgać nawet kilkunastu procent) oraz wyodrębniania ich z dostarczonego zbioru danych. W przypadku mniejszych zbiorów danych (pobieranych ze statycznego źródła, np. pliku) koszt wyodrębniania danych z XML jest na tyle niski, iż nie wpływa znacząco na czas generowania indeksu. Zauważalna różnica pojawia się dopiero w przypadku większych zbiorów danych. Stąd też, dla małych zbiorów danych, w przypadku generowania indeksu ze statycznego pliku bądź porównywalnych czasów generowania danych dla indeksera, czas budowania indeksu z XML może być nawet krótszy - w zależności od próby możliwe są wahania w jedną bądź drugą stronę. Drugi z analizowanych scenariuszy pokazuje, że nawet dla stosunkowo niewielkiego indeksu (<i>500k</i> dokumentów) różnica w czasie jego budowania jest już dość znacząca. Jest to dla nas o tyle istotne, iż zazwyczaj indeksy generowane będą na podstawie dynamicznie generowanego zbioru danych a nie statycznego pliku. Warto zwrócić uwagę jeszcze na jeden fakt - otóż liczba operacji IO w obu przypadkach (<i>TSV</i> vs <i>XML</i>) jest identyczna (szczegóły w załączonych szczegółowych wynikach).<br /><br /> 
+
+Dla zainteresowanych, kompletne <a href="https://gist.github.com/thejoyboy/eb4bc57b4dddd237bfec" target="_blank">wyniki</a> eksperymentów.
+</p>
+
+<p align="justify">Dla prawidłowego działania wyszukiwania, indeksowanie jest równie istotne co usługa wyszukiwania - bądź co bądź zapewnia strukturę danych umożliwiającą uzyskanie wysokiej jakości wyników wyszukiwania w bardzo krótkim czasie. Dlatego też tak istotne jest, aby dane w indeksie były odpowiednio często aktualizowane, co bezpośrednio jest zależne od wydajności mechanizmu indeksowania. W związku z tym, bardzo pożądana jest możliwość elastycznego 
+dostarczania danych dla indeksu, która realizowana jest m.in poprzez formaty XML oraz TSV. Przedstawiona analiza wskazuje TSV jako bardziej pożądany format - szybszy i prostszy. A czy Twoja aplikacja dostarcza już dane dla indeksów Sphinxa w taki sposób?</p>
+
+<p>Przydatne linki:<br />
+<ul>
+<li><a href="http://sphinxsearch.com/blog/2014/08/14/easy-indexing-with-tsvpipe/" target="_blank">http://sphinxsearch.com/blog/2014/08/14/easy-indexing-with-tsvpipe/</a></li>
+<li><a href="https://github.com/stefobark/index_tsv" target="_blank">https://github.com/stefobark/index_tsv</a></li>
+<li><a href="http://sphinxsearch.com/docs/current/tsvpipe.html" target="_blank">http://sphinxsearch.com/docs/current/tsvpipe.html</a></li>
+<li><a href="http://sphinxsearch.com/forum/view.html?id=11964" target="_blank">http://sphinxsearch.com/forum/view.html?id=11964</a></li>
+</ul>
+</p>
+
+
+
