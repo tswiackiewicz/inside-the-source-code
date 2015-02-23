@@ -1,0 +1,95 @@
+<p>W pierwszym <a href="http://inside-the-source-code.blogspot.com/2014/08/php-deamons-czesc-i.html" target="_blank">artykule</a> z cyklu <i>PHP Daemons</i> przedstawione zostało rozwiązanie oparte o mechanizm <i>forkowania</i>. Następnie, z uwagi na powstawanie <i>procesów zombie</i>, wprowadzone zostało <a href="http://inside-the-source-code.blogspot.com/2014/09/php-daemon-czesc-ii.html" target="_blank">rozwiązanie</a> pozwalające wyeliminować ten problem. Jednak dalsze testy i eksploatacja tego <i>daemona</i> wykazały jego kolejną słabość - przy jednoczesnej obsłudze wielu połączeń, które kończą swoje działanie w tym samym czasie (<i>ticku</i> procesora) licznik aktywnych połączeń pomniejszany jest o jeden zamiast rzeczywistą liczbę połączeń, które zakończyły działanie w tym momencie. W efekcie, bardzo szybko może wystąpić przekroczenie max liczby połączeń (nie będziemy przyjmowali nowych połączeń), chociaż tak naprawdę będzie uruchomiony tylko jeden proces. Wspomniana sytuacja wynika z tego, że obsługa <a href="http://en.wikipedia.org/wiki/Unix_signal" target="_blank">sygnałów</a> w systemach Unix została zaprojektowana w taki sposób, aby w danym momencie czasu, z uwagi na potencjalne wyścigi, przyjąć tylko jeden sygnał danego typu, np. <i>SIGUSR2</i>. Dlatego też konieczne jest zastosowanie innego mechanizmu do kontroli liczby aktywnych połączeń.</p>
+
+<p>Informacja o rozpoczęciu obsługi nowego połączenia bądź zakończeniu jego działania powinna zostać przekazana do procesu głównego (<i>ang. parent</i>) celem kontroli przekraczania max liczby połączeń. Zatem wymagana będzie <a href="http://en.wikipedia.org/wiki/Inter-process_communication" target="_blank">komunikacja między procesami</a> (<i><b>ang. IPC - inter-process communication</b></i>). W systemach Unixowych dostępne są następujące mechanizmy <i>IPC</i>:<br />
+
+<ul>
+<li><i><b>sygnały</b></i> (<i>ang. signals</i>)</li>
+<li>potoki nienazwane (<i>ang. pipes</i>)</li>
+<li>potoki nazwane / kolejki FIFO (<i>ang. First In First Out</i>)</li> 
+<li>pliki i blokady (<i>ang. file locks</i>)</li>
+<li>kolejki wiadomości (<i>ang. message queues</i>)</li>
+<li><i><b>semafory</b></i> (<i>ang. semaphores</i>)</li>
+<li><i><b>pamięć współdzieloną</b></i> (<i>ang. shared memory</i>)</li>
+<li><i><b>gniazdka</b></i> (<i>ang. sockets</i>)</li>
+</ul>
+</p>       
+
+<p>Wymienione powyżej mechanizmy obsłużone mogą być również za pomocą <i>PHP</i>. Przykładowo, <i>pipes</i> realizowane są za pomocą funkcji <i>popen()</i> / <i>proc_open()</i> / <i>pclose()</i>, kolejki <i>FIFO</i> - <i>posix_mkfifo()</i>, <i>locks</i> - <i>flock()</i> itd. Poszczególne rozwiązania różnią się między sobą i nie każde nadaje się do obsługi danych funkcjonalności. W naszym przypadku, do implementacji globalnego licznika aktywnych połączeń, najlepszym mechanizmem będzie <a href="http://en.wikipedia.org/wiki/Shared_memory" target="_blank">pamięć współdzielona</a> między procesami dzieci i procesem głównym.</p>
+
+<code data-gist-id="41e9a54168063c93a9e5" data-gist-line="98, 102-107" data-gist-highlight-line="104" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p><i><b>Shared memory</b></i> została wybrana, ponieważ wszystkie procesy będą działały w obrębie jednej lokalnej maszyny, dodatkowo zmiany licznika aktywnych połączeń powinny być bardzo szybkie stąd też oparcie tego mechanizmu na plikach czy gniazdkach nie będzie najlepszym wyborem. W pamięci współdzielonej przechowywana będzie liczba procesów utworzonych do obsługi poszczególnych klientów - w momencie forkowania (przez proces główny) licznik będzie podbijany, 
+natomiast kończąc swoje działanie wartość ta będzie pomniejszana (przez proces dziecka).</p> 
+
+<code data-gist-id="41e9a54168063c93a9e5" data-gist-line="493, 503-540, 577-591" data-gist-highlight-line="512, 585" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p>Szybkość pamięci współdzielonej wynika w głównej mierze z tego, oprócz faktu że realizowana jest w bezpośrednio w pamięci, iż do jej obsługi nie jest wymagana komunikacja z <i>kernelem</i>, jak to ma miejsce chociażby w przypadku potoków (<i>ang. pipes</i>). Jednak rozwiązanie to nie jest idealne - jak sugeruje sama nazwa mechanizmu, dostęp do współdzielonego obszaru pamięci będzie miało wiele procesów a więc tym samym czasie może próbować wprowadzać zmiany naszego licznika. Aby zapobiec tym wyścigom (<i>ang. race conditions</i>) konieczne będzie dodanie synchronizacji. Wśród dostępnych mechanizmów komunikacji między procesami dostępny jest taki mechanizm - <a href="http://en.wikipedia.org/wiki/Semaphore_%28programming%29" target="_blank">semafory</a>. Zatem schemat działania będzie następujący:<br />
+
+<ol>
+<li>utworzenie nowego procesu do obsługi połączenia</li>
+<li>założenie semafora - zablokowanie dostępu do wprowadzania zmian licznika</li>     
+<li>zwiększenie licznika</li>
+<li>zwolnienie semafora - usunięcie blokady dostępu do wprowadzania zmian licznika</li>
+<li>obsługa połączenia</li>
+<li>założenie semafora, zmniejszenie licznika, zwolnienie semafora</li>
+<li>zakończenie działania procesu dziecka</li>
+</ol>
+</p>
+
+<code data-gist-id="41e9a54168063c93a9e5" data-gist-line="107, 112-128, 145-164" data-gist-highlight-line="116, 124, 149, 160" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p>Warto zwrócić uwagę jeszcze na jedną istotną kwestię. Otóż, współdzielonej pamięci nie obejmuje mechanizm <i>reference counter</i> wykorzystywany przez PHPowy GC (<i>ang. garbage collector</i>). Oznacza to, iż kończąc działanie <i>daemona</i> nie zostanie zwolniona pamięć zarezerwowana dla segmentu <i>shared memory</i>. W związku z tym konieczne jest ręczne zwolnienie tej pamięci, w przeciwnym razie będzie ona zajęta do czasu restartu maszyny.</p>
+
+<code data-gist-id="41e9a54168063c93a9e5" data-gist-line="189, 193-201, 401-432" data-gist-highlight-line="197, 414" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p>Wprowadzenie licznika opartego o współdzieloną pamięć nieco zwolni szybkość działania naszego daemona z uwagi na konieczność synchronizacji dostępu opartej o <i><b>semafory</b></i>. Niemniej, dzięki temu, nasz daemon będzie odporny na problemy opisane powyżej (nieprawidłowe zmniejszanie licznika w przypadku równoczesnego kończenia pracy przez wiele połączeń) a oparta na tym liczniku kontrola max liczby połączeń zabezpieczy nas przed zbytnim obciążeniem maszyny. Jeśli uzyskana w ten sposób wydajność daemona będzie za mała, będziemy mogli skalować się dokładając kolejne <i>node'y</i> do naszego <i>clustra</i>. Ciekawą alternatywą dla zaproponowanego tutaj licznika aktywnych połączeń opartego o shared memory może być <b>APC</b> (<i>ang. Alternative PHP Cache</i>).
+Jednak, przynajmniej według mnie, bezpośrednia kontrola nad tym co dokładnie dzieje się w aplikacji jest lepszym rozwiązaniem a koniec końców <i>APC</i> i tak działa w oparciu o <i>shared memory</i> bądź <i>mmap</i> (w zależności od konfiguracji). Inne godne rozważenia alternatywy to rozwiązania oparte o <i>/dev/shm</i>, <i>php://memory</i> czy też <i>tmpfs</i>. Zachęcam do eksperymentów, korzystania z proponowanego przeze mnie rozwiązania no i zgłaszania własnych uwag i wniosków.</p>
+
+<p>Kompletny kod znajdziecie <a href="https://gist.github.com/thejoyboy/41e9a54168063c93a9e5" target="_blank">tutaj</a>.</p>
+
+<p>Przydatne linki:<br />
+
+<ul>
+<li><a href="http://www.linux-tutorial.info/modules.php?name=MContent&pageid=289" target="_blank">http://www.linux-tutorial.info/modules.php?name=MContent&pageid=289</a></li>
+<li><a href="http://www.makelinux.net/books/lkd2/ch03lev1sec1" target="_blank">http://www.makelinux.net/books/lkd2/ch03lev1sec1</a></li>
+<li><a href="http://linuxgazette.net/133/saha.html" target="_blank">http://linuxgazette.net/133/saha.html</a></li>
+<li><a href="http://www.cis.temple.edu/~ingargio/cis307/readings/signals.html" target="_blank">http://www.cis.temple.edu/~ingargio/cis307/readings/signals.html</a></li>
+<li><a href="http://cs-pub.bu.edu/fac/richwest/cs591_w1/notes/wk3_pt2.PDF" target="_blank">http://cs-pub.bu.edu/fac/richwest/cs591_w1/notes/wk3_pt2.PDF</a></li>
+<li><a href="http://andrey.hristov.com/projects/php_stuff/pres/writing_parallel_apps_with_PHP.pdf" target="_blank">http://andrey.hristov.com/projects/php_stuff/pres/writing_parallel_apps_with_PHP.pdf</a></li>
+<li><a href="http://linux.die.net/man/5/ipc" target="_blank">http://linux.die.net/man/5/ipc</a></li>
+<li><a href="http://beej.us/guide/bgipc/output/html/singlepage/bgipc.html" target="_blank">http://beej.us/guide/bgipc/output/html/singlepage/bgipc.html</a></li>
+<li><a href="http://tldp.org/LDP/lpg/node7.html" target="_blank">http://tldp.org/LDP/lpg/node7.html</a></li>
+<li><a href="http://www.amazon.com/exec/obidos/ISBN=0130810819/thevanishedgalle/" target="_blank">http://www.amazon.com/exec/obidos/ISBN=0130810819/thevanishedgalle/</a></li>
+<li><a href="http://stackoverflow.com/questions/404604/comparing-unix-linux-ipc" target="_blank">http://stackoverflow.com/questions/404604/comparing-unix-linux-ipc</a></li>
+<li><a href="http://linux.omnipotent.net/article.php?article_id=12504" target="_blank">http://linux.omnipotent.net/article.php?article_id=12504</a></li>
+<li><a href="http://www.workingsoftware.com.au/page/Something_Like_Threading" target="_blank">http://www.workingsoftware.com.au/page/Something_Like_Threading</a></li>
+<li><a href="http://www.tuxradar.com/practicalphp/16/1/9" target="_blank">http://www.tuxradar.com/practicalphp/16/1/9</a></li>
+<li><a href="http://www.cs.cf.ac.uk/Dave/C/node27.html" target="_blank">http://www.cs.cf.ac.uk/Dave/C/node27.html</a></li>
+<li><a href="http://www.kohala.com/start/unpv22e/unpv22e.chap12.pdf" target="_blank">http://www.kohala.com/start/unpv22e/unpv22e.chap12.pdf</a></li>
+<li><a href="https://stereochro.me/assets/uploads/notes/dcom3/shmem.pdf" target="_blank">https://stereochro.me/assets/uploads/notes/dcom3/shmem.pdf</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Memory-mapped_file" target="_blank">http://en.wikipedia.org/wiki/Memory-mapped_file</a></li>
+<li><a href="http://www.onlamp.com/pub/a/php/2004/05/13/shared_memory.html" target="_blank">http://www.onlamp.com/pub/a/php/2004/05/13/shared_memory.html</a></li>
+<li><a href="http://www.ibm.com/developerworks/library/os-php-shared-memory/" target="_blank">http://www.ibm.com/developerworks/library/os-php-shared-memory/</a></li>
+<li><a href="http://php.find-info.ru/php/016/ch10lev1sec7.html" target="_blank">http://php.find-info.ru/php/016/ch10lev1sec7.html</a></li>
+<li><a href="http://www.re-cycledair.com/php-dark-arts-shared-memory-segments-ipc" target="_blank">http://www.re-cycledair.com/php-dark-arts-shared-memory-segments-ipc</a></li>
+<li><a href="http://www.re-cycledair.com/php-dark-arts-semaphores" target="_blank">http://www.re-cycledair.com/php-dark-arts-semaphores</a></li>
+<li><a href="http://stackoverflow.com/questions/8631875/what-does-the-shmop-php-extension-do" target="_blank">http://stackoverflow.com/questions/8631875/what-does-the-shmop-php-extension-do</a></li>
+<li><a href="http://werxltd.com/wp/2010/08/23/process-forking-with-php/" target="_blank">http://werxltd.com/wp/2010/08/23/process-forking-with-php/</a></li>
+<li><a href="http://sysmagazine.com/posts/193270/" target="_blank">http://sysmagazine.com/posts/193270/</a></li>
+<li><a href="http://pubs.opengroup.org/onlinepubs/007908799/xsh/mmap.html" target="_blank">http://pubs.opengroup.org/onlinepubs/007908799/xsh/mmap.html</a></li>
+<li><a href="http://msdn.microsoft.com/en-us/library/ms810613.aspx" target="_blank">http://msdn.microsoft.com/en-us/library/ms810613.aspx</a></li>
+<li><a href="http://www.devshed.com/c/a/BrainDump/Using-mmap-for-Advanced-File-IO/" target="_blank">http://www.devshed.com/c/a/BrainDump/Using-mmap-for-Advanced-File-IO/</a></li>
+<li><a href="https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt" target="_blank">https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt</a></li>
+<li><a href="http://www.cyberciti.biz/tips/what-is-devshm-and-its-practical-usage.html" target="_blank">http://www.cyberciti.biz/tips/what-is-devshm-and-its-practical-usage.html</a></li>
+<li><a href="http://stephane.lesimple.fr/blog/2006-11-03/dev-shm-is-better-than-tmp.html" target="_blank">http://stephane.lesimple.fr/blog/2006-11-03/dev-shm-is-better-than-tmp.html</a></li>
+<li><a href="http://php.net/manual/en/function.stream-socket-pair.php" target="_blank">http://php.net/manual/en/function.stream-socket-pair.php</a></li>
+<li><a href="http://php.net/manual/en/book.apc.php" target="_blank">http://php.net/manual/en/book.apc.php</a></li>
+<li><a href="http://git.php.net/?p=pecl/caching/apc.git;a=blob;f=TECHNOTES.txt" target="_blank">http://git.php.net/?p=pecl/caching/apc.git;a=blob;f=TECHNOTES.txt</a></li>
+<li><a href="https://github.com/lifo101/php-ipc" target="_blank">https://github.com/lifo101/php-ipc</a></li>
+<li><a href="https://github.com/clue-legacy/Worker" target="_blank">https://github.com/clue-legacy/Worker</a></li>
+<li><a href="https://github.com/klaussilveira/SimpleSHM" target="_blank">https://github.com/klaussilveira/SimpleSHM</a></li>
+<li><a href="https://github.com/jamm/Memory" target="_blank">https://github.com/jamm/Memory</a></li>
+<li><a href="https://github.com/nanderoo/php-memory-demo" target="_blank">https://github.com/nanderoo/php-memory-demo</a></li>
+</ul></p>
+
+
