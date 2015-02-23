@@ -1,0 +1,181 @@
+SPHINXSEARCH - INSTALACJA PLUGINU SPHINXSE
+--------------------------------------------------------------------------
+
+W artykule zatytułowanym "SphinxSE - Sphinx Storage Engine" przedstawiony został prosty
+i szybki sposób rozszerzenia funkcjonalności naszej aplikacji o możliwość wyszukiwania
+pełnotekstowego. Zostało to osiągnięte dzięki wykorzystaniu SphinxSE czyli opcjonalnemu
+sposobowi przechowywania wyników wyszukiwania w "wirtualnej" tabeli, na której można
+wykonywać operacje typu JOIN z istniejącymi w naszej bazie danych tabelami. Wspomniany
+na początku artykuł skupia się wyłącznie na składni oraz możliwości zapytań Sphinx 
+Storage Engine, pomijając zupełnie krok włączenie obsługi ENGINE=SPHINX przez bazę danych.
+
+Dodatkowy engine (jak choćby MyISAM, InnoDB, Memory itd. ) dla baz danych z rodziny MySQL 
+(MySQL, MariaDB, Percona Server) dostarczany jest w postaci pluginu:
+
+	[mysql]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so'; 
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="1" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Jeśli instalacja pluginu przebiegła pomyślnie, na liście dostępnych silników powinien
+pojawić się SPHINX:
+
+	[mysql]> SHOW ENGINES;
+	+--------------------+---------+----------------------------------------------------------------------------+--------------+------+------------+
+	| Engine             | Support | Comment                                                                    | Transactions | XA   | Savepoints |
+	+--------------------+---------+----------------------------------------------------------------------------+--------------+------+------------+
+	| MyISAM             | YES     | MyISAM storage engine                                                      | NO           | NO   | NO         |
+	| MEMORY             | YES     | Hash based, stored in memory, useful for temporary tables                  | NO           | NO   | NO         |
+	| InnoDB             | DEFAULT | Supports transactions, row-level locking, and foreign keys 		    | YES          | YES  | YES        |
+	|	:	     | YES     |				:					    | NO	   | NO   | NO         |
+	|	:	     | YES     |				:					    | NO	   | NO   | NO         |		
+	| SPHINX             | YES     | Sphinx storage engine                                                      | NO           | NO   | NO         |
+	|	:	     | YES     |				:					    | NO	   | NO   | NO         |		
+	|	:	     | YES     |				:					    | NO	   | NO   | NO         |			
+	| PERFORMANCE_SCHEMA | YES     | Performance Schema                                                         | NO           | NO   | NO         |
+	+--------------------+---------+----------------------------------------------------------------------------+--------------+------+------------+
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="3-16" data-gist-highlight-line="12" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Następnie możemy przystąpić do utworzenia tabeli z ENGINE=SPHINX i rozpocząć full-text search
+zadając klasyczne zapytania SQL. Niestety w przypadku Percona-Server, nie wszystko jest takie 
+proste... 
+
+	[Percona]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
+	ERROR 1126 (HY000): Can't open shared library '/usr/lib/mysql/plugin/ha_sphinx.so' (errno: 2 /usr/lib/mysql/plugin/ha_sphinx.so: cannot open shared object file: No such file or directory)
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="18-19" data-gist-highlight-line="19" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Powyższy błąd spowodowany jest tym, że plugin do obsługi SphinxSE nie jest dostarczany
+razem z Percona-Server (posiadają własną obsługę FTS), zatem konieczne jest przygotowanie
+takiej biblioteki we własnym zakresie.
+
+Procedura kompilacji pluginu wygląda następująco:
+
+1. przygotowanie katalogu roboczego
+
+	[thejoyboy@localhost:~]$ cd ~; mkdir percona_sphinx; cd percona_sphinx
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="21" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+2. pobranie źródeł Percona-Server (wersja zgodną z tą z której korzystamy) oraz ich rozpakowanie
+
+	[thejoyboy@localhost:~/percona_sphinx]$ wget http://www.percona.com/downloads/Percona-Server-5.6/Percona-Server-5.6.22-72.0/source/tarball/percona-server-5.6.22-72.0.tar.gz
+	--2015-02-08 12:17:40--  http://www.percona.com/downloads/Percona-Server-5.6/Percona-Server-5.6.22-72.0/source/tarball/percona-server-5.6.22-72.0.tar.gz
+	Translacja www.percona.com (www.percona.com)... 74.121.199.234
+	Łączenie się z www.percona.com (www.percona.com)|74.121.199.234|:80... połączono.
+	Żądanie HTTP wysłano, oczekiwanie na odpowiedź... 200 OK
+	Długość: 34022879 (32M) [application/x-gzip]
+	Zapis do: `percona-server-5.6.22-72.0.tar.gz'
+
+	100%[========================================================================================================================================>] 34.022.879  2,08MB/s   w 18s     
+
+	2015-02-08 12:17:58 (1,84 MB/s) - zapisano `percona-server-5.6.22-72.0.tar.gz' [34022879/34022879]
+
+	[thejoyboy@localhost:~/percona_sphinx]$ tar -xzf percona-server-5.6.22-72.0.tar.gz
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="21-35" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+3. pobranie źródeł SphinxSearch oraz ich rozpakowanie
+
+	[thejoyboy@localhost:~/percona_sphinx]$ wget http://sphinxsearch.com/files/sphinx-2.2.6-release.tar.gz
+	--2015-02-08 12:20:04--  http://sphinxsearch.com/files/sphinx-2.2.6-release.tar.gz
+	Translacja sphinxsearch.com (sphinxsearch.com)... 78.47.162.181
+	Łączenie się z sphinxsearch.com (sphinxsearch.com)|78.47.162.181|:80... połączono.
+	Żądanie HTTP wysłano, oczekiwanie na odpowiedź... 200 OK
+	Długość: 2969037 (2,8M) [application/x-gzip]
+	Zapis do: `sphinx-2.2.6-release.tar.gz'
+
+	100%[========================================================================================================================================>] 2.969.037    794KB/s   w 3,7s    
+
+	2015-02-08 12:20:08 (794 KB/s) - zapisano `sphinx-2.2.6-release.tar.gz' [2969037/2969037]
+
+	[thejoyboy@localhost:~/percona_sphinx]$ tar -xzf sphinx-2.2.6-release.tar.gz
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="37-49" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code> 
+
+4. kopiowanie źródeł pluginu do obsługi SphinxSE do Percona-Server
+
+	[thejoyboy@localhost:~/percona_sphinx]$ mkdir percona-server-5.6.22-72.0/storage/sphinx
+	[thejoyboy@localhost:~/percona_sphinx]$ cp sphinx-2.2.6-release/mysqlse/* percona-server-5.6.22-72.0/storage/sphinx/
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="51-52" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+5. kompilacja źródeł Percony i wygenerowanie biblioteki ha_sphinx.so
+
+	[thejoyboy@localhost:~/percona_sphinx]$ cd percona-server-5.6.22-72.0; sh BUILD/autorun.sh; ./configure --with-plugins=sphinx
+	[thejoyboy@localhost:~/percona_sphinx]$ cd storage/sphinx; make
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="54-55" data-gist-highlight-line="55" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+6. kopiowanie biblioteki do docelowej lokalizacji oraz instalacja pluginu
+
+	[thejoyboy@localhost:~/percona_sphinx]$ sudo cp ~/percona_sphinx/percona-server-5.6.22-72.0/storage/sphinx/ha_sphinx.so /usr/lib/mysql/plugin
+	[thejoyboy@localhost:~]$ sudo service mysql restart
+	mysql stop/waiting
+	mysql start/running, process 6662
+
+	[Percona]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="57-60, 1" data-gist-highlight-line="1" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Przedstawiona powyżej procedura bardzo dobrze sprawdziła się w przypadku środowiska Mac OS X Yosemite, ale niestety problemy
+wystąpiły w Ubuntu 14.04 (Percona-Server zainstalowany za pomocą apt-get):
+
+	[Percona]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
+	ERROR 1126 (HY000): Can't open shared library '/usr/lib/mysql/plugin/ha_sphinx.so' (errno: 2 /usr/lib/mysql/plugin/ha_sphinx.so: undefined symbol: _ZTI7handler)
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="62-63" data-gist-highlight-line="63" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Analiza tego błędu i fachowych porad doprowadziła mnie do przyczyny - plugin trzeba skompilować z dokładnie takimi flagami
+z jakimi przygotowana została dostarczona dystrybujca naszej wersji bazy danych. Aby móc "podejrzeć" parametry kompilacji
+konieczne jest pobranie źródeł
+
+	[thejoyboy@localhost:~/percona_sphinx]$ mkdir percona-server-source; cd percona-server-source; sudo apt-get source percona-server-5.6
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="65" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+oraz wyszukiwanie parametrów kompilacji (cmake) w pliku percona-server-{$VERSION}/debian/rules
+
+Wracając do naszej procedury kompilacji, kroki 1-4 są identyczne, nastomiast w kroku 5 wykonujemy polecenie cmake 
+z takimi parametrami z jakimi została skompilowana nasza baza danych, np.
+
+	[thejoyboy@localhost:~/percona_sphinx]$ cd percona-server-5.6.22-72.0; cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_CONFIG=mysql_release -DCMAKE_CXX_FLAGS="-O3 -g -felide-constructors -fno-exceptions -fno-rtti -fno-strict-aliasing" -DMYSQL_UNIX_ADDR=/var/run/mysqld/mysqld.sock -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_LIBWRAP=ON -DWITH_ZLIB=system -DWITH_SSL=system -DCOMPILATION_COMMENT="Percona Server (GPL), Release 72.0, Revision 738" -DSYSTEM_TYPE="debian-linux-gnu" -DINSTALL_LAYOUT=RPM -DINSTALL_LIBDIR=lib/i386-linux-gnu -DINSTALL_PLUGINDIR=lib/mysql/plugin -DWITH_EMBEDDED_SERVER=OFF -DWITH_INNODB_MEMCACHED=ON -DWITH_ARCHIVE_STORAGE_ENGINE=ON -DWITH_BLACKHOLE_STORAGE_ENGINE=ON -DWITH_FEDERATED_STORAGE_ENGINE=ON -DWITH_PAM=ON -DWITH_EXTRA_CHARSETS=all
+	[thejoyboy@localhost:~/percona_sphinx]$ cd storage/sphinx; make
+
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="67-68" data-gist-highlight-line="67" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Krok 6 jest identyczny tj. kopiowanie biblioteki a następnie instalacja pluginu.
+
+Generalnie, włączenie obsługi SphinxSE jest bardzo proste. Jednak, w szczególnych przypadkach, może wymagać
+nieco więcej wysiłku (przygotowanie pluginu we własnym zakresie). Niemniej uważam, że i tak to jest
+stosunkowo niewielki koszt biorąc pod uwagę bardzo duże możliwości oferowane przez Sphinx Storage Engine
+oraz niski próg wejścia i mały zakres wprowadzonych zmian w bazowej wersji naszej aplikacji. 
+
+Przydatne linki:
+
+* https://mariadb.com/kb/en/mariadb/about-sphinxse/
+* http://sysmagazine.com/posts/161461/
+* https://trac.macports.org/ticket/45136
+* http://www.percona.com/doc/percona-server/5.6/installation/apt_repo.html
+* http://www.digincore.org/index.php/blogi-razrabotchikov/entry/sphinxse-percona-mysql-ubuntu-debian
+* https://github.com/dragolabs/dpkg-sphinx-se
+* https://github.com/ruhllatio/dpkg-sphinx-se
+* https://github.com/johnmarkg/percona-cluster-with-sphinx
+* https://github.com/nZEDb/nZEDb/tree/master/misc/sphinxsearch
+* http://forums.nzedb.com/index.php?topic=1755.0  
+* http://www.codefromaway.net/2012/02/setting-up-percona-galera-and-sphinxse.html
+* http://www.nicovs.be/install-mysql-with-sphinx-search-engine-support/
+* http://forums.mysql.com/read.php?94,260436,260436
+* https://mariadb.com/kb/en/mariadb/sphinx-status-variables/
+* http://sphinxsearch.com/forum/view.html?id=10238
+* http://sphinxsearch.com/forum/view.html?id=10017
+* http://sphinxsearch.com/forum/view.html?id=6862
+
+TAGI: SphinxSearch, ha_sphinx.so, plugi, MySQL, MariaDB, Percona, SphinxSE
+
+Comments:
+
+W przypadku problemów z instalacją pluginu pod Ubuntu, można skorzystać z gotowego skryptu https://github.com/dragolabs/dpkg-sphinx-se
+Jedynie trzeba podmienić parametry -DCMAKE_CXX_FLAGS na takie parametry z jakimi skompilowana została nasza wersja bazy.
+
+
