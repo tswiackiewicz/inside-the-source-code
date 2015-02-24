@@ -1,0 +1,47 @@
+<p>Ogólnie przyjętym wzorcem stosowanym w różnego rodzaju aplikacjach jest logowanie zdarzeń, np. wystąpienie błędu danego typu. Następnie na podstawie zalogowanych zdarzeń podejmowane są odpowiednie akcje, które będą wywoływane co ustalony interwał czasu bądź bezpośrednio po wystąpieniu zdarzenia. W pierwszym przypadku będziemy się posiłkowali <i>CRONem</i>, w drugim skorzystamy z wbudowanych (w OS) mechanizmów reagujących na wystąpienie zdarzenia. W systemach o dużej skali, gdzie logowanych zdarzeń może być sporo oraz zależy nam na efektywnym wykorzystaniu zasobów, skorzystamy z drugiego proponowanego tutaj rozwiązania - reagowanie na zdarzenia co ustalony interwał czasu może skutkować <i>pustymi przebiegami</i>. Przykładem takiej biblioteki, wspieranej przez <i>PHP</i>, może być <i>inotify</i>.</p>
+
+<p><b>Inotify</b> jest mechanizmem, wbudowanym w kernel Linuxowy, bazującym na paradygmacie <i>wszystko w systemach Linuxowych jest plikami</i> - po prostu operuje na deskryptorach plików. Umożliwia monitorowanie zmian w systemie plików i reaguje natychmiast w momencie wystąpienia zdarzenia, np. utworzenia nowego pliku. Wykorzystanie tego frameworka, z poziomu API PHP, sprowadzania się do utworzenia instancji <i>inotify</i> oraz podpięcia <i>watcher'ów</i> monitorujących zmiany w danych katalogach.</p>
+
+<code data-gist-id="c8443cfabef6b0c92af1" data-gist-line="29-40, 68-89" data-gist-highlight-line="37, 80" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>   
+
+<p>Wykorzystanie powyższego fragmentu kodu umożliwia reagowanie na dwa typy zdarzeń <b><i>IN_CREATE</i></b> (utworzenie nowego pliku) oraz <b><i>IN_ATTRIB</i></b> (zmiana atrybutów pliku, np. data ostatniej modyfikacji). Oczywiście, nasz monitoring nie będzie sprowadzał się wyłącznie do takich zdarzeń, dlatego też w razie potrzeby możemy dodać obsługę zdarzeń dowolnego typu. Pełną listę zdarzeń możemy znaleźć w <a href="http://php.net/manual/en/inotify.constants.php" target="_blank">dokumentacji</a>.</p>
+
+<p>Kolejnym krokiem, po utworzeniu instancji inotify oraz zdefiniowaniu monitorowych typów zdarzeń i katalogów, jest reagowanie na te zdarzenia. Każde zarejestrowane zdarzenie w systemie plików, zwracane przez <i>inotify_read()</i>, zawiera deskryptor podpiętego watcher'a oraz dopasowaną maskę (typ zdarzenia, np. <i>IN_CREATE</i>). Na podstawie tych atrybutów możemy reagować według potrzeb, np. zwiększając licznik utworzonych plików.</p>
+
+<code data-gist-id="c8443cfabef6b0c92af1" data-gist-line="104, 110-171" data-gist-highlight-line="120,141,150" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>   
+  
+<p>Monitorowane zmiany w systemie plików są buforowane dzięki czemu możliwa jest obsługa wielu zdarzeń równocześnie. Każdy z podłączonych watcher'ów, a więc każdy ze śledzonych katalogów, posiada własny bufor. Jeśli zdarzeń, czyli zmian w systemie plików będzie bardzo dużo bądź nie zdążymy ich obsłużyć odpowiednio szybko, może wystąpić przepełnienie bufora. Sytuacja taka sygnalizowana jest poprzez maskę <b><i>IN_Q_OVERFLOW</i></b> zwracaną jako jeden z atrybutów zarejestrowanych zdarzeń.</p>
+
+<code data-gist-id="c8443cfabef6b0c92af1" data-gist-line="104, 110-130, 165-171" data-gist-highlight-line="126" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>   
+
+</p>Rozmiar bufora kontrolowany jest poprzez zmianę parametrów konfiguracyjnych <i>inotify</i>, do których możemy zaliczyć:<br />
+<ul>
+<li><b><i>/proc/sys/fs/inotify/max_queued_events</i></b> - rozmiar bufora (osobny dla każdego z watcher'ów), jeśli zostanie przekroczony nowe zdarzenia nie będą przyjmowane ale każdorazowo zwracana będzie maska <i>Q_IN_OVERFLOW</i> (oraz wd = -1), domyślnie 16384</li>
+<li><b><i>/proc/sys/fs/inotify/max_user_instances</i></b> - max liczba instancji inotify per użytkownik, domyślnie 128</li>
+<li><b><i>/proc/sys/fs/inotify/max_user_watches</i></b> - max liczba watcher'ów per użytkownik, domyślnie 8192</li>
+</ul>
+</p>
+
+<p>Przedstawione powyżej rozwiązanie powala reagować na zdarzenia w aplikacji w momencie wystąpienia dzięki monitorowaniu zmian w systemie plików. Dzięki temu dostępne zasoby (CPU, pamięć, łącze itd.) wykorzystane będą efektywnie, a przy tym samo rozwiązanie jest bardzo mało obciążające dla systemu. Typy monitorowanych zdarzeń należy obsługiwać rozważnie, ponieważ jednej zmianie w systemie plików może towarzyszyć kilka zdarzeń, np. utworzeniu nowego pliku towarzyszą m.in zdarzenia typu <i>IN_CREATE</i> oraz <i>IN_ATTRIB</i>. Dodatkowo ograniczeni jesteśmy wyłącznie do systemów Linuxowych (i to nie wszystkich) oraz pojedynczego katalogu (dla poszczególnych podkatalogów trzeba zdefiniować odrębne watcher'y), ale za to proste API i małe wymagania systemowe pozwolą bardzo szybko zaadoptować to rozwiązanie w Waszych aplikacjach.</p>
+
+<p>Kompletny kod omawianego w tym artykule rozwiązania dostępny jest <a href="https://gist.github.com/thejoyboy/c8443cfabef6b0c92af1" target="_blank">tutaj</a>.</p> 
+
+<p>Przydatne linki:<br />
+<ul>
+<li><a href="http://man7.org/linux/man-pages/man7/inotify.7.html" target="_blank">http://man7.org/linux/man-pages/man7/inotify.7.html</a></li>
+<li><a href="http://ph7spot.com/musings/in-unix-everything-is-a-file" target="_blank">http://ph7spot.com/musings/in-unix-everything-is-a-file</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Everything_is_a_file" target="_blank">http://en.wikipedia.org/wiki/Everything_is_a_file</a></li>
+<li><a href="http://www.ibm.com/developerworks/library/l-ubuntu-inotify/" target="_blank">http://www.ibm.com/developerworks/library/l-ubuntu-inotify/</a></li>
+<li><a href="http://www.ibm.com/developerworks/library/l-inotify/" target="_blank">http://www.ibm.com/developerworks/library/l-inotify/</a></li>
+<li><a href="http://www.linuxjournal.com/node/8478/print" target="_blank">http://www.linuxjournal.com/node/8478/print</a></li>
+<li><a href="http://www.serverphorums.com/read.php?12,216856" target="_blank">http://www.serverphorums.com/read.php?12,216856</a></li>
+<li><a href="http://askubuntu.com/questions/154255/how-can-i-tell-if-i-am-out-of-inotify-watches" target="_blank">http://askubuntu.com/questions/154255/how-can-i-tell-if-i-am-out-of-inotify-watches</a></li>
+<li><a href="https://github.com/griffbrad/php-pecl-fsevents" target="_blank">https://github.com/griffbrad/php-pecl-fsevents</a></li>
+<li><a href="http://www.opensourceforu.com/2011/04/getting-started-with-inotify/" target="_blank">http://www.opensourceforu.com/2011/04/getting-started-with-inotify/</a></li>
+<li><a href="http://www.go4expert.com/articles/monitor-filesystem-changes-php-t29348/" target="_blank">http://www.go4expert.com/articles/monitor-filesystem-changes-php-t29348/</a></li>
+<li><a href="http://php.net/manual/en/book.inotify.php" target="_blank">http://php.net/manual/en/book.inotify.php</a></li>
+<li><a href="https://github.com/henrikbjorn/Lurker/blob/master/src/Lurker/Tracker/InotifyTracker.php" target="_blank">https://github.com/henrikbjorn/Lurker/blob/master/src/Lurker/Tracker/InotifyTracker.php</a></li>
+<li><a href="https://github.com/mkraemer/react-inotify/blob/master/src/MKraemer/ReactInotify/Inotify.php" target="_blank">https://github.com/mkraemer/react-inotify/blob/master/src/MKraemer/ReactInotify/Inotify.php</a></li>
+</ul>
+</p>
+
