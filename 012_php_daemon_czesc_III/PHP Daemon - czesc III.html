@@ -1,0 +1,87 @@
+<p>Jednym ze sposobów asynchronicznego przetwarzania w języku PHP jest <i>forkowanie</i> polegające na tworzeniu dedykowanego procesu, będącego duplikatem procesu głównego, do obsługi poszczególnych zadań, połączeń. Sposób ten został szczegółowo omówiony w poprzednim <a href="http://inside-the-source-code.blogspot.com/2014/09/php-daemon-czesc-ii.html" target="_blank">artykule</a> z cyklu <i>PHP Daemons</i>. Alternatywą dla tego podejścia może być zdefiniowanie pewnej ustalonej puli otwartych gniazdek (<i>ang. sockets</i>) do obsługi wielu równoległych połączeń, iterowanie po tej liście a następnie obsługa zmian statusów za pomocą mechanizmu <i><b>select()</b></i> (rozszerzenie sockets - funkcje <i>stream_select()</i> bądź <i>socket_select()</i>).</p>
+
+<p>Jeśli naszym celem będzie obsługa przykładowo 1000 równoległych połączeń, iterowanie po wszystkich przygotowanych w tym celu <i>socketach</i> może być kosztowne i mało wydajne. Istnieje jednak dużo bardziej wydajne rozwiązanie operujące na nieblokujących gniazdkach i przełączające się na obsługę danego połączenia dopiero w momencie kiedy wystąpi taka potrzeba (bez konieczności <i>pollingu</i> wielu socketów i analizowania czy status uległ zmianie). Problemem tutaj jest to, iż nie jest ono takie samo we wszystkich systemach operacyjnych. Przykładowo: <i>epoll</i> w Linuxie, <i>kqueue</i> - FreeBSD / Mac OS X czy też <i>/dev/poll</i> - Solaris. Zależy nam przecież na tym, aby nasza aplikacja była przenośna i nie było konieczności wprowadzania zmian przy kolejnych wdrożeniach, stąd też bazowanie na wydajniejszych wersjach mechanizmu <i>select()</i> może być kłopotliwe. Pomocne w tym wypadku będzie skorzystanie z biblioteki <i>libevent</i>, stanowiącej interfejs do najbardziej wydajnej implementacji <i>poll</i> w danym środowisku.</p>
+
+<p><b>Libevent</b> jest biblioteką zapewniającą mechanizm do wywoływania funkcji zwrotnych (<i>ang. callbacks</i>) w momencie wystąpienia danego zdarzenia na wskazanych deskryptorach plików bądź w przypadku osiągnięcia timeout'u. Przykładowo możemy przez to rozumieć, że do naszego <i>daemona</i> wysłane zostały dane i są gotowe do przetworzenia bądź zakończono operacje na tych danych i zostaną one odesłane do podłączonego klienta. Podejście takie charakterystyczne jest dla programowania asynchronicznego opartego na zdarzeniach (<i>ang. event-driven programming</i>). Centralnym punktem aplikacji opartej na tym modelu będzie główna pętla czyli tzw. <i><b>event loop</b></i>, gdzie będziemy oczekiwali na zdarzenia i w momencie ich wystąpienia wykonywali zdefiniowane dla tych zdarzeń
+zadania. Zanim jednak wystartujemy nasz event loop, konieczne jest wykonanie następujących kroków:<br />
+
+<ol>
+<li>stworzenie zdarzenia bazowego (<i>base_event</i>)</li>
+<li>stworzenie zdarzenia (<i>event</i>), które zostanie powiązane z monitorowanym deskryptorem</li>
+<li>zdefiniowanie monitorowanego deskryptora (<i>fd)</i> - w przypadku daemona będzie to socket</li>
+<li>powiązanie zdarzenia <i>event</i> z deskryptorem <i>fd</i> oraz zarejestrowanie callback'a do obsługi tego zdarzenia</li>
+<li>powiązanie zdarzeń <i>event</i> oraz <i>base_event</i></li>
+</ol>  
+</p>
+
+<code data-gist-id="008d9195b621396c1d92" data-gist-line="235, 239-254" data-gist-highlight-line="241-242, 246-247, 249-252" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p>Podstawowym zadaniem stawianym przed implementowanym przez nas daemonem w PHP będzie obsługa wielu połączeń równocześnie. Aby postulat ten został zrealizowany, operacje <i>I/O</i> (<i>ang. Input / Output</i>) powinny być nieblokujące tj. przyjmowanie nowych połączeń nie będzie wstrzymywane na czas obsługi zdarzeń. W tym celu zastosowane zostaną buforowane zdarzenia (<i>ang. buffered event</i>) posiadające własne bufory wejścia / wyjścia (<i>input buffer</i>, <i>output buffer</i>) - przykładowo, gdy wystąpi zdarzenie typu <i>read</i>, dane odebrane z deskryptora trafiają do bufora wejściowego a aplikacja wraca do trybu oczekiwania na nowe zdarzenia.</p> 
+
+<code data-gist-id="008d9195b621396c1d92" data-gist-line="254, 263-301" data-gist-highlight-line="278-285" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p>Dla każdego ze zdefiniowanych buforowanych zdarzeń możemy zarejestrować osobne funkcje zwrotne typu <i>read</i> / <i>write</i>. Domyślnie, read callback wywoływana jest w momencie odebrania danych z fd, write callback - gdy dane z bufora wyjściowego zostaną wysłane do monitorowanego deskryptora (tutaj: socket'u). Dodatkowo możemy przedefiniować obsługę tych callback'ów ustawiając odpowiednie poziomy <i><b>watermark</b></i>:<br />
+
+<ul>
+<li><b><i>read low-water mark</i></b> - min. liczba bajtów w buforze wejściowym (<i>input buffer</i>), która spowoduje wywołanie <i>read callback</i>, domyślnie 0</li>
+<li><b><i>read high-water mark</i></b> - max. liczba bajtów jaka spowoduje przerwanie wczytania do bufora wejściowego (do czasu zwolnienia miejsca w buforze),  domyślnie nieograniczona</li>
+<li><b><i>write low-water mark</i></b> - jak tylko liczba bajtów w buforze wyjściowym (<i>output buffer</i>) spadnie poniżej tego poziomu wywołana zostanie <i>write callback</i>, domyślnie 0 co oznacza, że <i>write callback</i> nie zostanie wywołany dopóki <i>output buffer</i> nie zostanie opróżniony</li>
+<li><i><b>write high-water mark</b></i> - znaczenie specjalne (filtrowanie zdarzeń buforowanych), brak zastosowania z poziomu <i>PHP API</i></li> 
+</ul>
+
+<p>Do ustawiania poziomów <i>watermark</i> dla danego buforowanego zdarzenia możemy wykorzystać <i>event_buffer_watermark_set()</i>.</p>
+
+<p>Dla każdego nowego połączenia z daemonem zdefiniowana zostanie nowa instancja buforowanego zdarzenia. Dodatkowo wszystkie utworzone instancje przechowywane będą w wewnętrznym cache'u celem kontroli max liczby połączeń - w momencie zamknięcia danego połączenia, odpowiednia instancja zostanie usunięta z cache'a. Jednak, aby poszczególne połączenia były obsługiwane w momencie wystąpienia zdarzenia danego typu konieczne jest włączenie obsługi, zdefiniowanego dla danego połączenia, buforowanego zdarzenia.</p>  
+
+<code data-gist-id="008d9195b621396c1d92" data-gist-line="254, 263-301" data-gist-highlight-line="290-291" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p>Włączając obsługę buforowanego zdarzenia (<i>event_buffer_enable()</i>) bądź definiując po prostu nowe zdarzenie (<i>event_set()</i>) zobligowani jesteśmy do określenia typu takiego zdarzenia. Sprowadza się to do ustawienia jednej z możliwych wartości:<br />
+
+<ul>
+<li><i><b>EV_TIMEOUT</b></i> - oznacza zdarzenia aktywne po upływie timeoutu, flaga jest ignorowana w momencie definiowana zdarzenia (timeout definiowany jest podczas dodawania zdarzenia - <i>event_add()</i>)</li>
+<li><i><b>EV_READ</b></i> - zdarzenia aktywne, gdy powiązany z danym zdarzeniem deskryptor jest gotowy do odczytu</li>
+<li><i><b>EV_WRITE</b></i> - zdarzenia aktywne, gdy powiązany z danym zdarzeniem deskryptor jest gotowy do zapisu</li> 
+<li><i><b>EV_SIGNAL</b></i> - flaga wykorzystywana do obsługi sygnałow (<i>ang. signals</i>)</li> 
+<li><i><b>EV_PERSIST</b></i> - flaga oznaczająca trwałość zdarzeń: domyślnie, jeśli dane oczekujące zdarzenie stanie się aktywne (powiązane deskryptory będą gotowe do odczytu / zapisu bądź upłynął timeout), nie powróci już do stanu oczekiwania o ile nie zostanie ponownie dodane (<i>event_add()</i>) w funkcji zwrotnej obsługującej to zdarzenie. Ustawienie flagi <i>EV_PERSIST</i> spowoduje trwałość tego zdarzenia tj. automatycznie przełączy się w stan oczekiwania po wywołaniu <i>callback'a</i>. Dodatkowo, pomimo flagi <i>EV_PERSIST</i>, istnieje możliwość wyjścia ze stanu oczekiwania wywołując <i>event_del()</i> w callback'u. Flagę <i>EV_PERSIST</i> włączamy dla zdarzeń typu <i>read</i> / <i>write</i> ustawiając <i>EV_READ|EV_PERSIST</i> bądź <i>EV_WRITE|EV_PERSIST</i>. Timeout zdarzeń z włączoną flagą <i>EV_PERSIST</i> jest resetowany w momencie wywołania funkcji zwrotnej, np. dla zdarzenia zdefiniowano flagi <i>EV_READ|EV_PERSIST</i> oraz timeout = 5 sek. - stanie się ono aktywne kiedy <i>fd</i> będzie gotowy do odczytu bądź minęło 5 sekund od czasu, gdy ostatni raz było ono (zdarzenie) aktywne</li>    
+</ul>
+</p>
+
+<p>Podsumowując, wykorzystanie biblioteki <i><b>libevent</b></i> do realizacji daemona w PHP pozwala znacznie ograniczyć zużycie zasobów, w porównaniu do rozwiązania opartego na <i>forkowaniu</i> procesów, przy identycznej liczbie obsługiwanych połączeń. Dodatkowo nie występują tutaj problemy związane z procesami zombie czy wieloma otwartymi połączeniami z bazą danych. Dzięki temu, że <i>libevent</i> stanowi interfejs do najwydajniejszej implementacji mechanizmu <i>select()</i> w danym środowisku, nie będzie potrzeby wprowadzania zmian podczas migracji z jednego środowiska do drugiego, np. z Mac OS X do Linuxa. W końcu, dzięki zastosowaniu modelu programowania asynchronicznego, co prawda wymagającego nieco innego podejścia przy projektowaniu rozwiązania, możliwa jest obsługa wielu równoległych procesów w jedno-procesowym (wynikającym z natury języka PHP) środowisku.</p>
+
+<p>Kompletny kod znajdziecie <a href="https://gist.github.com/thejoyboy/008d9195b621396c1d92" target="_blank">tutaj</a>.</p>
+
+<p>Przydatne linki:<br />
+
+<ul>
+<li><a href="http://cs.brown.edu/courses/cs168/f12/handouts/async.pdf" target="_blank">http://cs.brown.edu/courses/cs168/f12/handouts/async.pdf</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Reactor_pattern" target="_blank">http://en.wikipedia.org/wiki/Reactor_pattern</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Polling_%28computer_science%29" target="_blank">http://en.wikipedia.org/wiki/Polling_(computer_science)</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Asynchronous_I/O" target="_blank">http://en.wikipedia.org/wiki/Asynchronous_I/O</a></li>
+<li><a href="http://libevent.org/" target="_blank">http://libevent.org/</a></li>
+<li><a href="https://github.com/libevent/libevent" target="_blank">https://github.com/libevent/libevent</a></li>
+<li><a href="http://www.wangafu.net/~nickm/libevent-book/" target="_blank">http://www.wangafu.net/~nickm/libevent-book/</a></li>
+<li><a href="http://www.kegel.com/c10k.html" target="_blank">http://www.kegel.com/c10k.html</a></li>
+<li><a href="https://www.dartlang.org/articles/event-loop/" target="_blank">https://www.dartlang.org/articles/event-loop/</a></li>
+<li><a href="http://programmers.stackexchange.com/questions/214889/is-an-event-loop-just-a-for-while-loop-with-optimized-polling" target="_blank">http://programmers.stackexchange.com/questions/214889/is-an-event-loop-just-a-for-while-loop-with-optimized-polling</a></li>
+<li><a href="http://nick-black.com/dankwiki/index.php/Fast_UNIX_Servers" target="_blank">http://nick-black.com/dankwiki/index.php/Fast_UNIX_Servers</a></li>
+<li><a href="http://www.ibm.com/developerworks/library/os-php-multitask/" target="_blank">http://www.ibm.com/developerworks/library/os-php-multitask/</a></li>
+<li><a href="http://www.ibm.com/developerworks/aix/library/au-libev/" target="_blank">http://www.ibm.com/developerworks/aix/library/au-libev/</a></li>
+<li><a href="http://fkelly.com/index.php/libevent-v2-primer/" target="_blank">http://fkelly.com/index.php/libevent-v2-primer/</a></li>
+<li><a href="http://blog.si.kz/index.php/2010/02/03/libevent-for-php" target="_blank">http://blog.si.kz/index.php/2010/02/03/libevent-for-php</a></li>
+<li><a href="http://maxbeutel.de/blog/2012/05/libevent-woes-in-php/" target="_blank">http://maxbeutel.de/blog/2012/05/libevent-woes-in-php/</a></li>
+<li><a href="https://leanpub.com/php/read#leanpub-auto-network-daemons-using-libevent" target="_blank">https://leanpub.com/php/read#leanpub-auto-network-daemons-using-libevent</a></li>
+<li><a href="http://toys.lerdorf.com/archives/57-ZeroMQ-+-libevent-in-PHP.html" target="_blank">http://toys.lerdorf.com/archives/57-ZeroMQ-+-libevent-in-PHP.html</a></li>
+<li><a href="http://blog.gevent.org/2011/04/28/libev-and-libevent/" target="_blank">http://blog.gevent.org/2011/04/28/libev-and-libevent/</a></li>
+<li><a href="http://scotdoyle.com/python-epoll-howto.html" target="_blank">http://scotdoyle.com/python-epoll-howto.html</a></li>
+<li><a href="https://github.com/danielmunro/beehive" target="_blank">https://github.com/danielmunro/beehive</a></li>
+<li><a href="https://github.com/fhoenig/Kellner" target="_blank">https://github.com/fhoenig/Kellner</a></li>
+<li><a href="https://github.com/omgnull/php-libevent" target="_blank">https://github.com/omgnull/php-libevent</a></li>
+<li><a href="https://github.com/flashmob/Guerrilla-SMTPd" target="_blank">https://github.com/flashmob/Guerrilla-SMTPd</a></li>
+<li><a href="https://github.com/ThomasWeinert/carica-io" target="_blank">https://github.com/ThomasWeinert/carica-io</a></li>
+<li><a href="https://github.com/vedantk/evt-server" target="_blank">https://github.com/vedantk/evt-server</a></li>
+<li><a href="https://github.com/fkelly/usmq" target="_blank">https://github.com/fkelly/usmq</a></li>
+<li><a href="https://github.com/Anizoptera/AzaLibEvent" target="_blank">https://github.com/Anizoptera/AzaLibEvent</a></li>
+<li><a href="https://github.com/amphp/amp" target="_blank">https://github.com/amphp/amp</a></li>
+</ul>
+</p>
+
