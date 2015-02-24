@@ -1,0 +1,110 @@
+PHP DAEMON - CZĘŚĆ I
+--------------------------------------------------------------------------
+
+Bardzo często, w zależności od rozwiązywanego problemu, stosuje się powszechnie znane rozwiązania,
+np. strona web - PHP, rozwiązania klient-serwer bądź daemony - język C itd. Zaletą takiego podejścia 
+jest fakt, iż rozwiązania te zostały zoptymalizowane i wielokrotnie przetestowane "w boju". Zdarza się
+jednak tak, że oprogramowanie wytwarzane w naszej firmie skoncentrowane jest wokół jednej (bądź grupy)
+technologii, np. PHP / LAMP. Poznanie i wdrożenie nowej technologii może być zbyt kosztowne czy też 
+czasochłonne. W takiej sytuacji adaptuje się istniejące rozwiązania do naszych potrzeb. Podobnie będzie
+w naszym przypadku - głównym "bohaterem" tego artykułu będzie daemon zaimplementowany w PHP.    
+
+Głównym wyzwaniem przed jakim staje taki daemon jest obsługa wielu równoległych połączeń. Niestety język 
+PHP nie został zaprojektowany z myślą o obsłudze wielu wątkow. Zatem, pozostaje nam skorzystać z tradycyjnej
+obsługi wielu zadań (ang. multitasking) znanej z systemów Unix - powielanie procesów za pomocą forka 
+(ang. forking): tworzony jest nowy proces (będący duplikatem procesu głównego ale z pewnymi wyjątkami), 
+którego przetwarzanie rozpoczyna się "w miejscu" wywołania pcntl_fork(), natomiast oryginalny proces kontynuje 
+dalej swoje działanie. W ten sposób uzyskaliśmy dwa egzemplarze naszego oryginalnego procesu rozróżniane na
+podstawie identyfikatora PID (nowy proces otrzymuje swój indywidualny PID). Wracając do naszego daemona, 
+proces główny (ang. parent) odpowiedzialny będzie za przyjmowanie przychodzących połączeń, 
+stworzenie nowego procesu (ang. child) i przekazanie obsługi połączenia do tego procesu. Dzięki temu każde
+połaczenie z daemonem obsługiwane jest przez dedykowany proces a tym samym możliwa jest realizacja wielu
+zadań równolegle. 
+
+<code data-gist-id="63f76e0b61e0481e2059" data-gist-line="401-422,429-432, 434, 449-453" data-gist-highlight-line="403" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Podejście takie wymusza obsługę komunkacji między procesami. Komunikacja międzyprocesowa realizowana będzie 
+za pomocą, znanych z systemów Unixowych, sygnałów (ang. signals). Przykładowo, proces dziecko kończąc swoje 
+działanie wysyła sygnał SIGCHLD, który dalej obsługiwany jest przez proces rodzica (główny) bądź proces główny 
+kończąc swoje działanie wysyła SIGTERM do procesów dzieci (kończąc ich działanie). 
+
+<code data-gist-id="63f76e0b61e0481e2059" data-gist-line="159-186, 203-262" data-gist-highlight-line="181-184, 210, 231" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Warto wzbogacić naszego daemona o obsługę timeout'ów, ponieważ możemy dość łatwo wyczerpać pulę dostępnych
+połączeń jeśli wszyscy klienci zaraz po podłączeniu do daemona zaprzestaną dalszej aktywności. Do obsługi 
+timeout'ów również wykorzystane zostaną sygnały - SIGALRM.
+
+<code data-gist-id="63f76e0b61e0481e2059" data-gist-line="422-425, 268-276" data-gist-highlight-line="423-424" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>ższ
+
+Aby zapobiec nadmiernemu obciążeniu naszego systemu (poprzez niekontrolowane forkowanie procesów) bądź sytuacji znanej jako
+fork bomb (http://en.wikipedia.org/wiki/Fork_bomb), konieczne jest zarządzanie pulą dostępnych połączeń. Odpowiedzialny
+za to będzie proces główny, który przechowuje listę aktywnych połączeń. W przypadku przekroczenia dopuszczalnej liczby połączeń,
+wstrzymuje przyjmowanie nowych połączeń do czasu zwolnienia puli.
+
+Ostatnim elementem układanki jest zapewnienie komunikacji na linii klient-serwer. Wykorzystane zostaną tutaj 
+sockety (ang. sockets). 
+
+<code data-gist-id="63f76e0b61e0481e2059" data-gist-line="276, 280-288, 292-293, 306-310, 306, 311-312, 326" data-gist-highlight-line="282-285, 307, 312" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>  
+
+Daemon, z definicji, jest procesem działającym w tle (ang. background) a dodatkowo raz uruchomiony powinien działać zawsze - 
+stąd w powyższym fragmencie kodu warunek while(true). Dodatkowo dobrze zaimplementowany daemon powinien zapobiegać uruchomieniu
+wielu instancji w danym środowisku (np. poprzez locks) czy też nie powinien wyświetlać komunikatów na STDOUT (w powyższym przykładzie
+tylko w celach diagnostycznych). W omawianym tutaj przykładzie przedstawione zostały jedynie podstawowe mechanizmy
+umożliwiające implementację daemona w PHP. Pewne elementy nadal wymagają pracy, np. obsługa błędów czy też proces nadrzędny restartujący
+daemona w przypadku błędu. Tym samym zachęcam do korzystania z mojego przykładu i dostosowania go do Waszych potrzeb.
+
+Komplenty kod znajdziecie tutaj (https://gist.github.com/thejoyboy/63f76e0b61e0481e2059).   
+
+
+Przydatne linki:
+
+* http://kvz.io/blog/2009/01/09/create-daemons-in-php/
+* http://collaboradev.com/2011/03/31/php-daemons-tutorial/
+* http://community.spiceworks.com/topic/500944-is-using-php-as-a-daemon-a-good-idea
+* http://devzone.zend.com/209/writing-socket-servers-in-php/
+* http://www.devshed.com/c/a/PHP/Socket-Programming-With-PHP/
+* http://michaelcamden.me/?p=36
+* http://www.binarytides.com/php-socket-programming-tutorial/
+* http://www.mullie.eu/parallel-processing-multi-tasking-php/
+* http://code.hootsuite.com/parallel-processing-task-distribution-with-php/
+* http://www.workingsoftware.com.au/page/Something_Like_Threading
+* http://www.tuxradar.com/practicalphp/16/1/4
+* http://pleac.sourceforge.net/pleac_php/processmanagementetc.html
+* http://www.tuxradar.com/practicalphp/16/0/0
+* https://www.sharcnet.ca/help/index.php/Signal_Handling_and_Checkpointing
+* http://www.devshed.com/c/a/php/managing-standalone-scripts-in-php/
+* http://sysmagazine.com/posts/179075/
+* https://github.com/kakserpom/phpdaemon
+* https://github.com/shaneharter/PHP-Daemon
+* https://github.com/lukaszkujawa/php-multithreaded-socket-server
+* https://leanpub.com/php/
+
+TAGI: PHP, daemons, sockets, fork, pcntl, signals, multi tasking
+
+
+
+
+http://toys.lerdorf.com/archives/57-ZeroMQ-+-libevent-in-PHP.html
+https://leanpub.com/php/read#leanpub-auto-network-daemons-using-libevent
+http://maxbeutel.de/blog/2012/05/libevent-woes-in-php/
+https://github.com/fhoenig/Kellner
+https://code.google.com/p/kargo-event/
+http://www.grype.ca/multi-threading-or-concurrent-programming-in-php-with-lightweight-processes-2
+https://github.com/shaneharter/PHP-Daemon/wiki/Debugging-workers
+https://github.com/flashmob/Guerrilla-SMTPd
+http://www.tuxradar.com/practicalphp/16/1/6
+http://en.wikipedia.org/wiki/Asynchronous_I/O
+http://blog.si.kz/index.php/2010/02/03/libevent-for-php
+http://www.re-cycledair.com/php-dark-arts-shared-memory-segments-ipc
+http://systemsarchitect.net/multi-threaded-socket-server-in-php-with-fork/
+http://www.christophh.net/2012/07/24/php-socket-programming/
+http://www.binarytides.com/socket-programming-streams-php/
+http://we-love-php.blogspot.com/2012/10/how-to-implement-chat-server-php-server-sent-events.html.html
+http://itbrokeand.ifixit.com/2012/07/25/using-forker.html
+https://github.com/iFixit/forker
+http://stackoverflow.com/questions/10293292/how-to-interrupt-exec-and-kill-child-processes
+http://blog.si.kz/index.php/2010/02/03/libevent-for-php
+https://github.com/flashmob/Guerrilla-SMTPd
+https://github.com/danielmunro/beehive
+
+
