@@ -1,0 +1,84 @@
+PHP DAEMON - CZĘŚĆ II
+--------------------------------------------------------------------------
+
+Rozwiązanie przedstawione w jednym z poprzednich artykułów (http://inside-the-source-code.blogspot.com/2014/08/php-deamons-czesc-i.html)
+pozwala na realizację daemona w PHP dzięki wykorzystaniu mechanizmu forkowania procesów. Niestety podatne jest na powstawanie tzw. 
+"procesów zombie" (http://en.wikipedia.org/wiki/Zombie_process) - proces dziecko staje się procesem zombie dopóki proces główny nie obsłuży 
+jego statusu wyjścia (ang. exit code) bądź sam (proces główny) nie zakończy działania. W efekcie, przez procesy zombie, zajmowane są "sloty"
+(oraz pamięć) w tablicy procesów (ang. process table) co w kontekście długiego działania daemona będzie stanowiło problem.
+
+Omawiana powyżej implementacja daemona pozwala na powstawanie procesów zombie, ale również obsługuje takie procesy - w momencie 
+nadejścia nowego połączenia z daemonem wszystkie procesy zombie oczekujące na obsługę tj. połączenia które zrealizowały swoje zadanie 
+bądź zakończyły swoje działanie z powodu timeoutu, zostaną zakończone. Niestety, w okresach kiedy nie są obsługiwane żadne połączenia
+istnieje możliwość występowania dużej liczby procesów zombie. Rozwiązaniem tego problemu może być ignorowanie sygnałów SIGCHLD przez
+proces główny. Wówczas procesy dzieci będą umierały natychmiast, bez oczekiwania na obsługę statusu wyjścia przez proces rodzica.
+
+<code data-gist-id="454c3687785f186e8ab1" data-gist-line="149-185" data-gist-highlight-line="178" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Jednym z wymagań stawianych procesowi gównemu jest kontrola liczby połączeń - chcemy zapobiegać nadmiernemu tworzeniu procesów w systemie.
+W poprzednim rozwiązaniu kontrolowane było to poprzez listę aktywnych procesów dzieci (oraz ich identyfikatorów PID). Możliwe było to dzięki
+obsłudze SIGCHLD, gdzie dokładnie wiedzieliśmy który proces kończy swoje działanie. Z kolei w omawianym tutaj rozwiązaniu, zapobiegającym
+powstawaniu procesów zombie, nie znamy identyfikatora procesu kończącego działanie ponieważ nie obsługujemy SIGCHLD. Jednak funkcjonalność
+tą zrealizujemy w inny sposób - proces główny będzie kontrolował liczbę aktywnych procesów zwiększając ten licznik w momencie utworzenia
+nowego procesu do obsługi połączenia oraz zmniejszał go obsługując SIGUSR2 (procesy dzieci umierając będą wysyłały ten
+sygnał do procesu głównego). Obsługa sygnałów SIGUSR2 również będzie następowała w momencie nadejścia nowego połączenia, ale nie będzie
+to stanowiło problemu gdyż zanim zostanie utworzony nowy proces, licznik aktywnych procesów zostanie zaktualizowany a tym samym będziemy
+wiedzili czy możemy obsłużyć nowe połączenie.
+
+<code data-gist-id="454c3687785f186e8ab1" data-gist-line="149-156, 175-180, 184-185, 249-259, 290-305" data-gist-highlight-line="179, 301" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+Do rozwiązania pozostaje jeszcze jedna kwestia - proces główny umierając, powienien także ubijać aktywne procesy dzieci. Ponieważ nie 
+przechowujemy listy identyfikatorów aktywnych procesów przez proces główny daemona, nie możemy ubijać poszczegółych procesów wysyłając
+SIGINT / SIGTERM do poszczególnych procesów dzieci. Zamiast tego, proces parenta umierając będzie wysyłał SIGINT / SIGTERM do wszystkich
+procesów o tym samym identyfikatorze grupy procesów co proces główny. Poszczególne procesy dzieci nie zostaną do końca odłączone
+od procesu rodzica (nie będą stawały się liderami sesji), a więc tym samym będą posiadały ten sam identyfikator grupy procesów.
+
+<code data-gist-id="454c3687785f186e8ab1" data-gist-line="212, 218-243" data-gist-highlight-line="228" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+ 
+Przedstawione powyżej rozwiązanie stanowi tylko jedno z możliwych rozwiązań problemów zombie. Zakres opisanych tutaj zmian jest niewielki
+względem oryginalnego rozwiązania (http://inside-the-source-code.blogspot.com/2014/08/php-deamons-czesc-i.html), a więc będzie prosty
+do wprowdzania. Docelowe rozwiązanie i tak będzie zależało od wymagań stawianemu Waszemu daemonowi, niemniej moje rozwiązanie może stanowić
+dobrą bazę do dalszych prac.
+
+Komplenty kod znajdziecie tutaj (https://gist.github.com/thejoyboy/454c3687785f186e8ab1). 
+
+Przydatne linki:
+
+* http://en.wikipedia.org/wiki/Zombie_process
+* http://pleac.sourceforge.net/pleac_php/processmanagementetc.html
+* http://php.net/manual/en/function.pcntl-fork.php
+* http://fixunix.com/unix/533215-how-avoid-zombie-processes.html
+* http://stackoverflow.com/questions/9976441/terminating-zombie-child-processes-forked-from-socket-server
+* http://stackoverflow.com/questions/16238510/pcntl-fork-results-in-defunct-parent-process
+* http://unix.stackexchange.com/questions/11172/how-can-i-kill-a-defunct-process-whose-parent-is-init
+* http://lubutu.com/code/spawning-in-unix
+
+TAGI: PHP, daemons, sockets, fork, pcntl, signals, multi tasking, zombie process
+
+
+
+
+http://toys.lerdorf.com/archives/57-ZeroMQ-+-libevent-in-PHP.html
+https://leanpub.com/php/read#leanpub-auto-network-daemons-using-libevent
+http://maxbeutel.de/blog/2012/05/libevent-woes-in-php/
+https://github.com/fhoenig/Kellner
+https://code.google.com/p/kargo-event/
+http://www.grype.ca/multi-threading-or-concurrent-programming-in-php-with-lightweight-processes-2
+https://github.com/shaneharter/PHP-Daemon/wiki/Debugging-workers
+https://github.com/flashmob/Guerrilla-SMTPd
+http://www.tuxradar.com/practicalphp/16/1/6
+http://en.wikipedia.org/wiki/Asynchronous_I/O
+http://blog.si.kz/index.php/2010/02/03/libevent-for-php
+http://www.re-cycledair.com/php-dark-arts-shared-memory-segments-ipc
+http://systemsarchitect.net/multi-threaded-socket-server-in-php-with-fork/
+http://www.christophh.net/2012/07/24/php-socket-programming/
+http://www.binarytides.com/socket-programming-streams-php/
+http://we-love-php.blogspot.com/2012/10/how-to-implement-chat-server-php-server-sent-events.html.html
+http://itbrokeand.ifixit.com/2012/07/25/using-forker.html
+https://github.com/iFixit/forker
+http://stackoverflow.com/questions/10293292/how-to-interrupt-exec-and-kill-child-processes
+http://blog.si.kz/index.php/2010/02/03/libevent-for-php
+https://github.com/flashmob/Guerrilla-SMTPd
+https://github.com/danielmunro/beehive
+
+
