@@ -1,0 +1,30 @@
+<p align="justify">Wdrażając wyszukiwarkę w naszym serwisie, warto mieć na uwadze, oprócz typowych wymagań takich jak filtrowanie wyników, sortowanie czy znajdywanie tych najtrafniejszych, także intuicyjność przyjętego rozwiązania. Użytkownik, korzystając z wyszukiwarki, nie powinien zastanawiać się w jakiej formie szukana fraza znajduje się w przeszukiwanych zasobach. Szukając wyników dla <i>Gdańsk</i> możemy oczekiwać, że znajdziemy także te które zawierają <i>Gdansk</i>, <i>gdansk</i> czy też <i>Gdańsku</i> bądź <i>gdanskiem</i>. Kwestia obsługi polskich znaków diakrytycznych przez <b>SphinxSearch</b> opisana została w jednym z poprzednich <a href="http://inside-the-source-code.blogspot.com/2014/04/sphinxsearch-obsuga-kodowania-utf-8.html" target="_blank">artykułów</a>. Natomiast obsługa różnych form wyrażeń wydaje się tematem dużo bardziej zaawansowanym i skomplikowanym.</p>
+
+<p align="justify">Zagadnieniami odmiany różnych form wyrażeń, jak i innymi kwestiami przetwarzania tekstu zajmuje się dziedzina znana jako <b>NLP</b> (ang. <i>Natural Language Processing</i>). W przypadku pełnotekstowych silników wyszukiwania, takich jak choćby SphinxSearch, szczególnie istotne są dwa terminy wywodzące się właśnie z NLP - <b>lematyzacja</b> (ang. <i>lemmatization</i>) oraz <b>stemming</b>. Pierwszy z nich oznacza sprowadzenie grupy wyrazów stanowiących odmianę danego zwrotu do wspólnej postaci, umożliwiającej traktowanie ich wszystkich jako to samo wyrażenie, np. <i>running</i> - <i>run</i>. Stemming natomiast to proces polegający
+na wydobyciu z wybranego wyrażenia tzw. rdzenia czyli usuwanie końcówek wyrazów i sprowadzenie ich do gramatycznej formy podstawowej, np. <i>czekasz</i> - <i>czekać</i>. Rezultaty lematyzacji i stemmingu mogą być podobne, dla danego wyrażenia, tyle że w przypadku stemmingu nie ma gwarancji, że wynik będzie prawidłowym wyrażeniem. Przykładowo, często stosowany dla języka angielskiego, <i>Stemmer Portera</i> zwraca <i>busi</i> dla słowa <i>business</i>.</p>   
+
+<p align="justify"><i>SphinxSearch</i> posiada wbudowany lematyzer dla języka rosyjskiego oraz stemmery dla angielskiego, czeskiego i arabskiego. Natomiast, począwszy od wersji <i>2.2.1-beta</i>, oprócz wspomnianego lematyzera dla języka rosyjskiego i stemmerów angielskiego, czeskiego i arabskiego, zawiera również lematyzery języka angielskiego i niemieckiego oraz stemmer rosyjskiego. Ponadto istnieje możliwość podpięcia stemmerów oferowanych w ramach projektu <a href="http://snowball.tartarus.org/" target="_blank">Snowball</a>. Aby skorzystać z wyżej wymienionych wbudowanych narzędzi (lematyzery i stemmer) trzeba odpowiednio skonfigurować indeksy - opcja <b>morphology</b> w sekcji <i>index</i>, np. morphology = stem_en, lemmatize_ru.</p>
+
+<code data-gist-id="b4794ae38b2ad7ced9d2" data-gist-line="95-99,166-174" data-gist-highlight-line="171-172" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p align="justify">W przypadku języka polskiego sytuacja jest dużo bardziej złożona - nie istnieją wbudowane bądź gotowe (Snowball - libstemmer) biblioteki, konieczne jest skorzystanie z uprzednio przygotowanego słownika wyrazów. Przykładowy słownik można znaleźć <a href="http://blog.thedigitals.pl/fileadmin/uploads/wordform-pl-dict-urf-8.zip" target="_blank">tutaj</a>, załączamy go konfigurując opcję <b>wordforms</b> w sekcji <i>index</i> podając ścieżkę do pliku słownika.</p>
+
+<code data-gist-id="b4794ae38b2ad7ced9d2" data-gist-line="95-99,151-164" data-gist-highlight-line="163" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+
+<p align="justify">Efekty wprowadzonych zmian będą następujące: szukając wyrażenia <i>cats</i> otrzymamy także wyniki zawierające słowo <i>cat</i> (dla indeksu <i>test_eng_stemmer</i>) oraz szukając <i>żółwiem</i> znajdziemy także te ze słowami <i>żółw</i>, <i>żółwiowi</i>, <i>żółwiami</i> itd. (w przypadku indeksu <i>test_pl_wordforms</i>).</p>   
+
+<p align="justify">Konfigurując indeks, tak aby korzystał z wbudowanych lematyzerów, stemmerów, alternatywnych bibliotek (libstemmer) czy też spreparowanego słownika, należy pamiętać o tym, że przetwarzanie tekstu będzie miało miejsce zarówno na etapie wyszukiwania jak i indeksowania. Dodatkowo, operacje te będą wymagały dodatkowych zasobów (RAM, CPU), ale mimo to warto rozważyć wprowadzenie opisanego powyżej rozwiązania mając na uwadze, oczywiście, satysfakcje i zadowolenie użytkowników naszego serwisu.</p>
+
+<p>Przydatne linki:<br />
+<ul>
+<li><a href="http://search.blox.pl/2010/01/Myslec-po-polsku.html" target="_blank">http://search.blox.pl/2010/01/Myslec-po-polsku.html</a></li>
+<li><a href="http://horusiath.blogspot.com/2012/08/nlp-stemming-i-lematyzacja.html" target="_blank">http://horusiath.blogspot.com/2012/08/nlp-stemming-i-lematyzacja.html</a></li>
+<li><a href="http://sphinxsearch.com/blog/2013/07/15/morphology-processing-with-sphinx/" target="_blank">http://sphinxsearch.com/blog/2013/07/15/morphology-processing-with-sphinx/</a></li>
+<li><a href="http://sphinxsearch.com/docs/current.html#conf-morphology" target="_blank">http://sphinxsearch.com/docs/current.html#conf-morphology</a></li>
+<li><a href="http://sphinxsearch.com/docs/current.html#conf-wordforms" target="_blank">http://sphinxsearch.com/docs/current.html#conf-wordforms</a></li>
+<li><a href="http://snowball.tartarus.org/" target="_blank">http://snowball.tartarus.org/</a></li>
+<li><a href="http://blog.thedigitals.pl/wdrozenie-sphinx-search/" target="_blank">http://blog.thedigitals.pl/wdrozenie-sphinx-search/</a></li>
+<li><a href="http://sysmagazine.com/posts/147745/" target="_blank">http://sysmagazine.com/posts/147745/</a></li>
+</ul>
+</p>
+
