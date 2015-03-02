@@ -12,7 +12,7 @@
 
 <code data-gist-id="fbb4113f6bffd187706e" data-gist-line="18-19" data-gist-highlight-line="19" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
 
-<p align="justify">Powyższy błąd spowodowany jest tym, że plugin do obsługi <i>SphinxSE</i> nie jest dostarczany razem z <i><b>Percona Server</b></i> (posiadają własną obsługę <i>FTS</i>), zatem konieczne jest przygotowanie takiej biblioteki we własnym zakresie.</p>
+<p align="justify">Powyższy błąd spowodowany jest tym, że plugin do obsługi <i>SphinxSE</i> nie jest dostarczany razem z <i><b>Percona Server</b></i> (posiadają własną obsługę <i><a href="http://www.percona.com/blog/2013/02/26/myisam-vs-innodb-full-text-search-in-mysql-5-6-part-1/" target="_blank">FTS</a></i>), zatem konieczne jest przygotowanie takiej biblioteki we własnym zakresie.</p>
 
 <p>Procedura kompilacji pluginu wygląda następująco:<br />
 
@@ -21,7 +21,7 @@
 <code data-gist-id="fbb4113f6bffd187706e" data-gist-line="21" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
 
 <li>pobranie źródeł Percona-Server (wersja zgodną z tą z której korzystamy) oraz ich rozpakowanie<br /><br /></li>
-<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="21-35" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="23-35" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
 
 <li>pobranie źródeł SphinxSearch oraz ich rozpakowanie<br /><br /></li>
 <code data-gist-id="fbb4113f6bffd187706e" data-gist-line="37-49" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code> 
@@ -75,6 +75,7 @@ wystąpiły w <i>Ubuntu 14.04</i> (Percona-Server zainstalowany za pomocą <i>ap
 <li><a href="http://sphinxsearch.com/forum/view.html?id=10238" target="_blank">http://sphinxsearch.com/forum/view.html?id=10238</a></li>
 <li><a href="http://sphinxsearch.com/forum/view.html?id=10017" target="_blank">http://sphinxsearch.com/forum/view.html?id=10017</a></li>
 <li><a href="http://sphinxsearch.com/forum/view.html?id=6862" target="_blank">http://sphinxsearch.com/forum/view.html?id=6862</a></li>
+<li><a href="http://www.percona.com/blog/2013/02/26/myisam-vs-innodb-full-text-search-in-mysql-5-6-part-1/" target="_blank">http://www.percona.com/blog/2013/02/26/myisam-vs-innodb-full-text-search-in-mysql-5-6-part-1/</a></li>
 </ul>
 </p>
 

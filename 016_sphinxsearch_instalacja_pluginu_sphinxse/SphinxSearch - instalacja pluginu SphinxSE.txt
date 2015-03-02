@@ -73,7 +73,7 @@ Procedura kompilacji pluginu wygląda następująco:
 
 	[thejoyboy@localhost:~/percona_sphinx]$ tar -xzf percona-server-5.6.22-72.0.tar.gz
 
-<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="21-35" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
+<code data-gist-id="fbb4113f6bffd187706e" data-gist-line="23-35" data-gist-hide-footer="true" data-gist-hide-line-numbers="true"></code>
 
 3. pobranie źródeł SphinxSearch oraz ich rozpakowanie
 
@@ -170,6 +170,7 @@ Przydatne linki:
 * http://sphinxsearch.com/forum/view.html?id=10238
 * http://sphinxsearch.com/forum/view.html?id=10017
 * http://sphinxsearch.com/forum/view.html?id=6862
+* http://www.percona.com/blog/2013/02/26/myisam-vs-innodb-full-text-search-in-mysql-5-6-part-1/
 
 TAGI: SphinxSearch, ha_sphinx.so, plugi, MySQL, MariaDB, Percona, SphinxSE
 
