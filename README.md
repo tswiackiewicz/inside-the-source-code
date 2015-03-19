@@ -1,4 +1,2 @@
-# inside-the-source-code
-http://inside-the-source-code.blogspot.com
-
+Blog: tswiackiewicz.github.io/inside-the-source-code/
 
