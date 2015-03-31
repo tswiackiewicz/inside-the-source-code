@@ -1,0 +1,42 @@
+---
+layout: page
+permalink: /archive/index.html
+title: Archiwum
+description: "Lista artykułów z podziałem na lata, miesiące, ..."
+---
+
+{% for post in site.posts %}
+
+  {% unless post.next %}
+  <h2 id="{{ post.date | date: '%Y' }}">{{ post.date | date: '%Y' }}</h2>
+  <ul class="post-list">	
+  {% else %}
+    {% capture year %}{{ post.date | date: '%Y' }}{% endcapture %}
+    {% capture nyear %}{{ post.next.date | date: '%Y' }}{% endcapture %}
+    {% if year != nyear %}
+  </ul>
+  <h2 id="{{ post.date | date: '%Y' }}">{{ post.date | date: '%Y' }}</h2>
+  <ul class="post-list">
+    {% endif %}
+  {% endunless %}
+
+  {% assign month = nil %}
+  {% assign m = post.date | date: "%-m" %}
+  {% case m %}
+    {% when '1' %} {% assign month = "Sty" %}
+    {% when '2' %} {% assign month = "Lut" %}
+    {% when '3' %} {% assign month = "Mar" %}
+    {% when '4' %} {% assign month ="Kwi" %}
+    {% when '5' %} {% assign month = "Maj" %}
+    {% when '6' %} {% assign month = "Cze" %}
+    {% when '7' %} {% assign month = "Lip" %}
+    {% when '8' %} {% assign month = "Sie" %}
+    {% when '9' %} {% assign month = "Wrz" %}
+    {% when '10' %} {% assign month = "Paź" %}
+    {% when '11' %} {% assign month = "Lis" %}
+    {% when '12' %} {% assign month = "Gru" %}
+  {% endcase %}
+
+  <li><a href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}<span class="entry-date">{{ month }} <time datetime="{{ post.date | date_to_xmlschema }}" itemprop="datePublished">{{ post.date | date: "%d, %Y" }}</time></a></li>
+ 
+{% endfor %}

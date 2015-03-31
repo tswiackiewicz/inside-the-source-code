@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+{% include head.html %}
+{% if site.dropcap %}<style type="text/css">@media only screen and (min-width:43.75em){.notepad-post-content div>p:first-child:first-letter{float:left;font-size:4.688rem;line-height:4.375rem;padding-top:.25rem;padding-right:.5rem;padding-left:.188rem;font-family:serif}}</style>{% endif %}
+</head>
+<body class="post-template" itemscope itemtype="http://schema.org/WebPage">  
+
+{% assign month = nil %}
+{% assign m = page.date | date: "%-m" %}
+{% case m %}
+  {% when '1' %} {% assign month = "Sty" %}
+  {% when '2' %} {% assign month = "Lut" %}
+  {% when '3' %} {% assign month = "Mar" %}
+  {% when '4' %} {% assign month ="Kwi" %}
+  {% when '5' %} {% assign month = "Maj" %}
+  {% when '6' %} {% assign month = "Cze" %}
+  {% when '7' %} {% assign month = "Lip" %}
+  {% when '8' %} {% assign month = "Sie" %}
+  {% when '9' %} {% assign month = "Wrz" %}
+  {% when '10' %} {% assign month = "Paź" %}
+  {% when '11' %} {% assign month = "Lis" %}
+  {% when '12' %} {% assign month = "Gru" %}
+{% endcase %}
+
+        <main id="notepad-post-container-simple" class="notepad-post-container-simple" role="main">
+            <header class="notepad-post-header-simple">
+                <div class="notepad-post-menu-header-simple">
+
+                <div class="notepad-blog-menu">      
+    <div class="notepad-mobile-menu show-for-small">
+        <a href="#"><i class="fa fa-bars"></i></a>
+    </div>
+    <ul class="notepad-menu">
+        <li class="notepad-mobile-close-btn show-for-small text-right">
+            <a href="#"><i class="fa fa-times"></i></a>
+        </li>
+{% for link in site.links %}
+            <li>{% if link.external %}
+                    <a href="{{ link.url }}">{{ link.title }}</a>
+                {% else %}
+                    <a href="{{ site.url }}{{ link.url }}">{{ link.title }}</a>
+                {% endif %} </li>
+{% endfor %}            
+    </ul>
+
+</div>
+            </div>
+                <div class="notepad-post-title-simple row">
+                    <div class="small-12 columns">
+                        <div class="notepad-post-meta-simple">
+                            <h1>{{ page.title }}</h1>
+                            <p><strong>{{ site.owner.name }}</strong> &#8212; {% if page.category %}<a href="{{ site.url }}/categories/index.html#{{ page.category | cgi_encode }}" data-toggle="tooltip" title="Kategoria: {{ page.category }}" rel="category">{{ page.category }}</a>{% endif %} <strong>{{ month }} <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%d, %Y" }}</time></strong>&nbsp;&nbsp;&nbsp;<i class="fa fa-comment-o"></i> <a href="{{ post.url }}#disqus_thread"></a></p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        <article class="notepad-post-content post tag-simple">
+            <div>{{ content }}
+            {% assign tagsize = page.tags.size %}{% if tagsize != 0 %} <p>tagi: {% for tag in page.tags %}<a href="{{ site.url }}/tags/index.html#{{ tag | cgi_encode }}" data-toggle="tooltip" title="Tag: {{ tag }}" rel="tag">{{ tag }}</a>{% unless forloop.last %}&nbsp;&comma;&nbsp;{% endunless %}{% endfor %}</p>{% endif %}
+            </div>
+
+        </article>
+        <div class="cf"></div>
+{% if site.share %}{% include share.html %}{% endif %}
+        <div class="cf"></div>
+        
+{% include signoff.html %} 
+        
+        <div class="cf"></div>
+        {% if site.disqus_shortname and page.comments == true %}
+        <section class="notepad-disqus row">
+    <div class="small-12 columns">
+        <h1 class="notepad-comments-header">Komentarze</h1>
+        <div id="disqus_thread"></div>
+        {% include disqus_comments.html %}
+    </div>
+</section>
+{% endif %}
+        <div class="cf"></div>
+
+    {% include footer.html %} 
+</main>    
+{% include scripts.html %} 
+</body>
+</html>

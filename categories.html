@@ -1,0 +1,47 @@
+---
+layout: page
+permalink: /categories/index.html
+title: Kategorie
+description: "Lista artykułów z podziałem na kategorie"
+---
+
+<ul class="tag-box inline">
+{% assign categories = site.categories %}  
+    {% for category in categories %} 
+    <li><a href="#{{ category[0] }}">{{ category[0] | capitalize }} <span>{{ category[1].size }}</span></a></li>
+    {% endfor %}
+{% assign categories = nil %}
+</ul>
+
+{% for category in site.categories %} 
+  <h2 id="{{ category[0] }}">{{ category[0] | capitalize }}</h2>
+  <ul class="post-list">
+    {% assign pages_list = category[1] %}  
+    {% for post in pages_list %}
+      {% assign month = nil %}
+      {% assign m = post.date | date: "%-m" %}
+      {% case m %}
+        {% when '1' %} {% assign month = "Sty" %}
+        {% when '2' %} {% assign month = "Lut" %}
+        {% when '3' %} {% assign month = "Mar" %}
+        {% when '4' %} {% assign month ="Kwi" %}
+        {% when '5' %} {% assign month = "Maj" %}
+        {% when '6' %} {% assign month = "Cze" %}
+        {% when '7' %} {% assign month = "Lip" %}
+        {% when '8' %} {% assign month = "Sie" %}
+        {% when '9' %} {% assign month = "Wrz" %}
+        {% when '10' %} {% assign month = "Paź" %}
+        {% when '11' %} {% assign month = "Lis" %}
+        {% when '12' %} {% assign month = "Gru" %}
+      {% endcase %}
+
+      {% if post.title != null %}
+      {% if group == null or group == post.group %}
+      <li><a href="{{ site.url }}{{ post.url }}">{{ post.title }}<span class="entry-date">{{ month }} <time datetime="{{ post.date | date_to_xmlschema }}" itemprop="datePublished">{{ post.date | date: "%d, %Y" }}</time></a></li>
+      {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% assign pages_list = nil %}
+    {% assign group = nil %}
+  </ul>
+{% endfor %}

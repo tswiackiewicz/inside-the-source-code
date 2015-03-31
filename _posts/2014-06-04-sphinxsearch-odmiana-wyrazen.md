@@ -1,0 +1,75 @@
+---
+layout: post
+title: "SphinxSearch - odmiana wyrażeń"
+description: "Wdrażając wyszukiwarkę w naszym serwisie, warto mieć na uwadze, oprócz typowych wymagań takich jak filtrowanie wyników, sortowanie czy znajdywanie tych najtrafniejszych, także intuicyjność przyjętego rozwiązania. Użytkownik, korzystając z wyszukiwarki, nie powinien zastanawiać się w jakiej formie szukana fraza znajduje się w przeszukiwanych zasobach..."
+headline: 
+modified: 2014-06-04
+category: sphinxsearch
+tags: [indexer, lemmatization, morphology, stemming, search, sphinx, sphinxsearch]
+comments: true
+featured: false
+---
+
+Wdrażając wyszukiwarkę w naszym serwisie, warto mieć na uwadze, oprócz typowych wymagań takich jak filtrowanie wyników, sortowanie czy znajdywanie tych najtrafniejszych, także intuicyjność przyjętego rozwiązania. Użytkownik, korzystając z wyszukiwarki, nie powinien zastanawiać się w jakiej formie szukana fraza znajduje się w przeszukiwanych zasobach. Szukając wyników dla *Gdańsk* możemy oczekiwać, że znajdziemy także te które zawierają *Gdansk*, *gdansk* czy też *Gdańsku* bądź *gdanskiem*. Kwestia obsługi polskich znaków diakrytycznych przez **SphinxSearch** opisana została w jednym z poprzednich [artykułów]({{ site.url }}/sphinxsearch/sphinxsearch-obsluga-kodowania-utf8/). Natomiast obsługa różnych form wyrażeń wydaje się tematem dużo bardziej zaawansowanym i skomplikowanym.
+
+### Lematyzacja, stemming
+
+Zagadnieniami odmiany różnych form wyrażeń, jak i innymi kwestiami przetwarzania tekstu zajmuje się dziedzina znana jako <abbr title="Natural Language Processing">NLP<abbr>. W przypadku pełnotekstowych silników wyszukiwania, takich jak choćby *SphinxSearch*, szczególnie istotne są dwa terminy wywodzące się właśnie z NLP - **lematyzacja** (*ang. lemmatization*) oraz **stemming**. Pierwszy z nich oznacza sprowadzenie grupy wyrazów stanowiących odmianę danego zwrotu do wspólnej postaci, umożliwiającej traktowanie ich wszystkich jako to samo wyrażenie, np. *running* - *run*. *Stemming* natomiast to proces polegający na wydobyciu z wybranego wyrażenia tzw. rdzenia czyli usuwanie końcówek wyrazów i sprowadzenie ich do gramatycznej formy podstawowej, np. *czekasz* - *czekać*. Rezultaty lematyzacji i stemmingu mogą być podobne, dla danego wyrażenia, tyle że w przypadku stemmingu nie ma gwarancji, że wynik będzie prawidłowym wyrażeniem. Przykładowo, często stosowany dla języka angielskiego, *Stemmer Portera* zwraca *busi* dla słowa *business*.
+
+### Morphology
+
+*SphinxSearch* posiada wbudowany lematyzer dla języka rosyjskiego oraz stemmery dla angielskiego, czeskiego i arabskiego. Natomiast, począwszy od wersji *2.2.1-beta*, oprócz wspomnianego lematyzera dla języka rosyjskiego i stemmerów angielskiego, czeskiego i arabskiego, zawiera również lematyzery języka angielskiego i niemieckiego oraz stemmer rosyjskiego. Ponadto istnieje możliwość podpięcia stemmerów oferowanych w ramach projektu [Snowball](http://snowball.tartarus.org/). Aby skorzystać z wyżej wymienionych wbudowanych narzędzi (lematyzery i stemmer) trzeba odpowiednio skonfigurować indeksy - opcja **morphology** w sekcji *index*, np. *morphology = stem_en, lemmatize_ru*.
+
+``` apache
+#############################################################################
+## index definition
+#############################################################################
+ 
+index test_eng_stemmer
+{
+	source 			= src1
+	path 			= /var/lib/sphinxsearch/data/test_eng_stemmer
+	min_word_len 		= 2
+	morphology 		= stem_en
+	min_stemming_len 	= 4
+}
+```
+
+W przypadku języka polskiego sytuacja jest dużo bardziej złożona - nie istnieją wbudowane bądź gotowe (*Snowball* - *libstemmer*) biblioteki, konieczne jest skorzystanie z uprzednio przygotowanego słownika wyrazów. Przykładowy słownik można znaleźć [tutaj](http://blog.thedigitals.pl/fileadmin/uploads/wordform-pl-dict-urf-8.zip), załączamy go konfigurując opcję **wordforms** w sekcji *index* podając ścieżkę do pliku słownika.
+
+``` apache
+#############################################################################
+## index definition
+#############################################################################
+ 
+index test_pl_wordforms
+{
+	source 			= src1
+	path 			= /var/lib/sphinxsearch/data/test_pl_wordforms
+	min_word_len 		= 2
+	charset_table 		= 0..9, A..Z->a..z, a..z, U+0143->U+0144, \
+				U+0104->U+0105, U+0106->U+0107, U+0118->U+0119, \
+				U+0141->U+0142, U+00D3->U+00F3, U+015A->U+015B, \
+				U+0179->U+017A, U+017B->U+017C, U+0105, U+0107, \
+				U+0119, U+0142, U+00F3, U+015B, U+017A, U+017C, \
+				U+0144
+ 
+	wordforms 		= /etc/sphinxsearch/wordforms-pl-dict.txt
+} 
+```
+
+Efekty wprowadzonych zmian będą następujące: szukając wyrażenia *cats* otrzymamy także wyniki zawierające słowo *cat* (dla indeksu *test_eng_stemmer*) oraz szukając *żółwiem* znajdziemy także te ze słowami *żółw*, *żółwiowi*, *żółwiami* itd. (w przypadku indeksu *test_pl_wordforms*).
+
+Konfigurując indeks, tak aby korzystał z wbudowanych lematyzerów, stemmerów, alternatywnych bibliotek (*libstemmer*) czy też spreparowanego słownika, należy pamiętać o tym, że przetwarzanie tekstu będzie miało miejsce zarówno na etapie wyszukiwania jak i indeksowania. Dodatkowo, operacje te będą wymagały dodatkowych zasobów (RAM, CPU), ale mimo to warto rozważyć wprowadzenie opisanego powyżej rozwiązania mając na uwadze, oczywiście, satysfakcje i zadowolenie użytkowników naszego serwisu.
+
+Przydatne linki:
+
+* [http://search.blox.pl/2010/01/Myslec-po-polsku.html](http://search.blox.pl/2010/01/Myslec-po-polsku.html)
+* [http://horusiath.blogspot.com/2012/08/nlp-stemming-i-lematyzacja.html](http://horusiath.blogspot.com/2012/08/nlp-stemming-i-lematyzacja.html)
+* [http://sphinxsearch.com/blog/2013/07/15/morphology-processing-with-sphinx/](http://sphinxsearch.com/blog/2013/07/15/morphology-processing-with-sphinx/)
+* [http://sphinxsearch.com/docs/current.html#conf-morphology](http://sphinxsearch.com/docs/current.html#conf-morphology)
+* [http://sphinxsearch.com/docs/current.html#conf-wordforms](http://sphinxsearch.com/docs/current.html#conf-wordforms)
+* [http://snowball.tartarus.org/](http://snowball.tartarus.org/)
+* [http://blog.thedigitals.pl/wdrozenie-sphinx-search/](http://blog.thedigitals.pl/wdrozenie-sphinx-search/)
+* [http://sysmagazine.com/posts/147745/](http://sysmagazine.com/posts/147745/)
+
