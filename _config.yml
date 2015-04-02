@@ -34,7 +34,6 @@ links:
 
 timezone:       UTC
 future:         true
-highlighter:    none
 markdown:       kramdown
 paginate:       5
 paginate_path:  "page:num"
