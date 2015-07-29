@@ -1,10 +1,10 @@
 ---
 layout: post
 title: "Blogging like a hacker"
-description: ""
+description: "Gdy zaczynałem pisać pierwszy post na mojego bloga, myślałem tylko o tym że chcę podzielić się swoją wiedzą z innymi, wymienić doświadczenia. Nie miałem zamiaru spędzać długich godzin szukając właściwego rozwiązania do realizacji mojego celu. Potrzebowałem narzędzia, które będzie proste i przyjazne w użyciu..."
 headline: 
 modified: 2015-05-18
-category: sphinxsearch
+category: general
 tags: [jekyll, GitHub, highlightjs, disqus]
 comments: true
 featured: false
