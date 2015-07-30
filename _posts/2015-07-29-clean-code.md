@@ -30,9 +30,9 @@ Dobra rada - **Keep It Simple, Stupid**, czysto i przejrzyście - bez tricków, 
 
 ### YAGNI
 
-Czy programista to wróżbista? Niejednokrotnie pracując nad jakimś zadaniem zostawialiśmy *furtki na przyszłość*, żeby kiedyś tam dane rozwiązanie czy inny wariant rozwiązania bądź też dodatkowe funkcjonalności były gotowe. Możemy się tłumaczyć, że znamy specyfikę naszego produktu oraz biznesu (tutaj: część organizacji odpowiedzialna za kreowanie nowych funkcjonalności wytwarzanego produktu) i prędzej czy później będziemy musieli dodać ten ekstra kawałek kodu. Tymczasem, czas leci, projekt ma swój termin, budżet itd. Jeśli nawet, pomimo tej dodatkowej pracy, udało nam się nie przekroczyć terminu, to tak czy siak klient zapłacił za dodatkową pracę której nie zamawiał. Zazwyczaj jednak występuje pierwszy scenariusz czyli termin bądź inne funkcjonalności cierpią na naszej dobrej woli. Co gorsza, jeśli do następnego sprintu przejdą punkty z poprzedniego (z powodu niezrealizowania kluczowych wymagań), koszt projektu rośnie jeszcze bardziej z powodu, mogłoby się wydawać błachego, odstępstwa od specyfikacji. Istnieje jeszcze dodatkwoe zagrożenie, że dodatkowa funkcjonalność którą przygotowaliśmy nigdy nie będzie wymagana. W efekcie uzyskamy nieużywany kawałek, a co gorsze za jakiś czas inny developer spojrzy na to i będzie zgadywał w jakim celu tutaj to się znalazło? 
+Czy programista to wróżbista? Niejednokrotnie pracując nad jakimś zadaniem zostawialiśmy *furtki na przyszłość*, żeby kiedyś tam dane rozwiązanie czy inny wariant rozwiązania bądź też dodatkowe funkcjonalności były gotowe. Możemy się tłumaczyć, że znamy specyfikę naszego produktu oraz biznesu (tutaj: część organizacji odpowiedzialna za kreowanie nowych funkcjonalności wytwarzanego produktu) i prędzej czy później będziemy musieli dodać ten ekstra kawałek kodu. Tymczasem, czas leci, projekt ma swój termin, budżet itd. Jeśli nawet, pomimo tej dodatkowej pracy, udało nam się nie przekroczyć terminu, to tak czy siak klient zapłacił za dodatkową pracę której nie zamawiał. Zazwyczaj jednak występuje pierwszy scenariusz czyli termin bądź inne funkcjonalności cierpią na naszej dobrej woli. Co gorsza, jeśli do następnego sprintu przejdą punkty z poprzedniego (z powodu niezrealizowania kluczowych wymagań), koszt projektu rośnie jeszcze bardziej z powodu, mogłoby się wydawać błahego, odstępstwa od specyfikacji. Istnieje jeszcze dodatkowe zagrożenie, że ta extra funkcjonalność którą przygotowaliśmy nigdy nie będzie wymagana. W efekcie uzyskamy nieużywany kawałek, a co gorsze za jakiś czas inny developer spojrzy na to i będzie zgadywał w jakim celu tutaj to się znalazło? 
 
-Dobra rada - **You Ain't Gonna Need It**, skupmy się tylko na tym co w danym momencie jest niezbędne do realizacji zadania.  
+Dobra rada - **You Ain't Gonna Need It**, skupmy się tylko na tym co w danym momencie jest niezbędne do realizacji zadania, ale jednocześnie nie blokujmy możliwości prostego rozszerzania funkcjonalności w myśl zasady *OPC* 
 
 ### SOLID
 
@@ -98,7 +98,7 @@ Sercem naszego oprogramowania są funkcje. Oprócz dobrej nazwy wyjaśniającej,
 * realizuje wyłącznie jedną czynność
 * zawiera kod z jednego poziomu abstrakcji
 * możliwie mało argumentów wejściowych
-* wyłącznie argumenty wejściowe
+* wyłącznie argumenty wejściowe (bez referencji, argumentów typu out w C#)
 * nie zawierają argumentów true / false - *passing boolean argument is ugly*
 * do sygnalizowania błędów stosuje wyjątki
 * bez side efektów
@@ -111,7 +111,7 @@ W końcu, klasy, składają się z funkcji. Powinny być małe (do 200 *LOC*) i
 
 ### Prawo Demeter
 
-*Zasada minimalnej wiedzy* lub *Reguła ograniczenia iterakcji* - jedna z najważniejszych zasad *OOD* pozwalająca na zmniejszenie zależności pomiędzy poszczególnymi elementami systemu.
+*Zasada minimalnej wiedzy* lub *Reguła ograniczenia iterakcji* - jedna z najważniejszych zasad *Object Oriented Design* pozwalająca na zmniejszenie zależności pomiędzy poszczególnymi elementami systemu.
 
 > Talk to Friends Not to Strangers
 
