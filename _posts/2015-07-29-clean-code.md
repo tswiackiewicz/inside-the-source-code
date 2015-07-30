@@ -278,6 +278,7 @@ Przydatne linki:
 * [http://www.sitepoint.com/introduction-to-the-law-of-demeter/](http://www.sitepoint.com/introduction-to-the-law-of-demeter/)
 * [http://itcraftsman.pl/powiedz-nie-pytaj-czyli-prawo-demeter/](http://itcraftsman.pl/powiedz-nie-pytaj-czyli-prawo-demeter/)
 * [http://martinfowler.com/bliki/BeckDesignRules.html](http://martinfowler.com/bliki/BeckDesignRules.html)
+* [https://vimeo.com/97541185](https://vimeo.com/97541185)
 
 
 
