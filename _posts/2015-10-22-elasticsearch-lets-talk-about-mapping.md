@@ -54,7 +54,7 @@ Przykładowy mapping (w formacie *JSON*):
 
 ### Time-based indices
 
-Bardzo często dokumenty w indeksach *Elasticsearch* organizowane są w kontekście czasowym, np. różnego rodzaju logi aplikacyjne, błędów czy też zapis aktywności użytkowników systemu. Podział danych na przedziały czasowe po pierwsze wypływa na czasy odpowiedzi, gdyż operujemy wyłacznie na danych z interesującego nas przedizału czasu. Dwa, bardzo łatwo możemy usuwać stare dane - po prostu usuwamy cały indeks. Możemy łatwo archiwizować dane bazując na znaczniku czasu, przenosić takie dane w inne lokalizacje itd. Mamy cały wachalrz możliwości. Przykładem aplikacji korzystającej z takich indeksów może być [Kibana](https://www.elastic.co/products/kibana). 
+Bardzo często dokumenty w indeksach *Elasticsearch* organizowane są w kontekście czasowym, np. różnego rodzaju logi aplikacyjne, błędów czy też zapis aktywności użytkowników systemu. Podział danych na przedziały czasowe po pierwsze wpływa na czasy odpowiedzi, gdyż operujemy wyłacznie na danych z interesującego nas przedizału czasu. Dwa, bardzo łatwo możemy usuwać stare dane - po prostu usuwamy cały indeks. Możemy łatwo archiwizować dane bazując na znaczniku czasu, przenosić takie dane w inne lokalizacje itd. Mamy cały wachalrz możliwości. Przykładem aplikacji korzystającej z takich indeksów może być [Kibana](https://www.elastic.co/products/kibana). 
 
 Pojawia się jednak jeden problem. Struktura danych w poszczególnych indeksach będzie taka sama, będą różniły się wyłącznie nazwą indeksu. Skorzystamy zatem z bardzo popularnego *copy-paste'ingu* czy poszukwamy bardziej wyszukanych rozwiązań? 
 
@@ -62,7 +62,7 @@ Pojawia się jednak jeden problem. Struktura danych w poszczególnych indeksach 
 
 Rozwiązaniem powyższego problemu może być zastosowanie szablonów (*ang. template*). Pozwalają one automatycznie aplikować zdefiniowany wcześniej mapping dla nowo tworzonych indeksów.
  
-Zasada działania takich szablonów jest bardzo prosta - dla wszystkich nowych indeksów pasujących do ustalonego wzorca ustawiany jest mapping określony w szablonie. Nowy indeks możemy utworzyć z poziomu *API Elastica* bądź dodając nowych dokument do indeksu.
+Zasada działania takich szablonów jest bardzo prosta - dla wszystkich nowych indeksów pasujących do ustalonego wzorca ustawiany jest mapping określony w szablonie. Nowy indeks możemy utworzyć z poziomu *API Elastica* bądź dodając nowy dokument do indeksu.
 
 Szablon może zawierać zarówno definicję typów, formatów oraz analizatorów poszczególnych pól, jak również ustawienia indeksu (np. liczba replik) czy też konfigurację własnych analizatorów. Należy jednak pamiętać o tym, że pola które nie zostaną uwzlędnione w mappingu zdefiniowanym w szablonie, a znajdą się w indeksowanych dokumentach, otrzymają mapping odganięty na podstawie pierwszego dokumentu zawierającego takie pole.
 
@@ -135,6 +135,7 @@ Wracając do poruszonego w poprzedniej sekcji zagadnienia, a mianowicie identycz
 
 * zarządzanie mappingami indeksów poprzez szablony jest bardzo wygodne, możemy je przechowywać w dowolnym systemie kontroli wersji
 * nie bójmy się eksperymentować z mappingami - możemy przygotować template, założyć pusty indeks pasujący do zdefiniowanego wzorca, a następnie za pomocą dostępnych pluginów (np. [Kopf](https://github.com/lmenezes/elasticsearch-kopf)), weryfikować czy osiągnęliśmy satysfakcjonujący nas mapping
+* nowy indeks może zostać założony z poziomu *API Elastica*, ale również zostanie utworzony podczas dodawania pierwszego dokumentu do indeksu; w środowisku produkcyjnym zalecaną praktyką jest utworzenie indeksu przed dodaniem pierwszego dokumentu - będziemy mieli pewność, że docelowy indeks będzie miał pożądaną strukturę 
 * jeżeli potrzebujemy, w zależności od kontekstu, aby jedno pole dokumentu zostało zaindeksowane w różny sposób (np. analizowany i nieanalizowany) skorzystajmy z *[multi-fields](https://www.elastic.co/guide/en/elasticsearch/reference/current/_multi_fields.html)*, a w payloadzie dokumentu interesująca nas wartość zostanie przekazana tylko raz
 * zarządzanie szablonami odbywa się z poziomu [API](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-templates.html) *Elasticsearcha*, ale dostępne narzędzia pozwalają na dostęp do nich z poziomu panelów *www*
 * zalecałbym wykorzystanie flagi *dynamic: strict*, która zabezpieczy nas przed dokumentami o strukturze innej (nadmiarowej) niż ta zdefiniowana w mappingu
