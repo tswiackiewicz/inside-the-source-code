@@ -103,10 +103,10 @@ curl -XPUT "http://localhost:9200/_template/application_logs" -d '
       	        "params": {          
                     "type": "string",
                     "analyzer": "params_analyzer",
-                    "fields": { 
-          	            "raw": { 
-          	                "type": "string", 
-          	                "index": "not_analyzed" 
+                    "fields": {
+                        "raw": {
+                            "type": "string",
+                            "index": "not_analyzed" 
                         }
                     }
                 },
