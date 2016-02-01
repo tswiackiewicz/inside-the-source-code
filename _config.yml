@@ -1,19 +1,19 @@
-title:              Inside The Source Code
+title:              "Inside The Source Code"
 description:        "Inside The Source Code Blog"
 disqus_shortname:   insidethesourcecode
 share:              true
-dropcap:	    true
+dropcap:            true
 readtime:           true
 url:                /inside-the-source-code
 
 # owner/author information
 owner:
-  name:             Tomasz Świacko-Świackiewicz
-  avatar:           avatar.png
+  name:             "Tomasz Świacko-Świackiewicz"
+  avatar:           "avatar.png"
   email:          
-  description:      Software Architect, GetResponse
-  linkedin:         https://pl.linkedin.com/in/tomasz-%C5%9Bwiacko-%C5%9Bwiackiewicz-9b8029114
-  github:           tswiackiewicz      
+  description:      "Software Architect, GetResponse"
+  linkedin:         "https://pl.linkedin.com/in/tomasz-%C5%9Bwiacko-%C5%9Bwiackiewicz-9b8029114"
+  github:           "tswiackiewicz"
 
 # Analytics and webmaster tools stuff goes here
 google_analytics:   UA-61454272-1
