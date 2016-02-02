@@ -17,7 +17,7 @@ owner:
 
 # Analytics and webmaster tools stuff goes here
 google_analytics:   UA-61454272-1
-google_verify:      
+google_verify:
 
 # Links to include in footer navigation
 # For external links add external: true
@@ -51,3 +51,4 @@ kramdown:
   
 include: [".htaccess"]
 exclude: ["lib", "config.rb", "Gemfile", "Capfile", "Gemfile.lock", "config", "log", "Rakefile", "Rakefile.rb", "tmp", "less", "*.sublime-project", "*.sublime-workspace", "test", "spec", "Gruntfile.js", "package.json", "node_modules"]
+
