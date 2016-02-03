@@ -32,8 +32,6 @@ links:
   - title: O mnie
     url: /about
 
-gems: [jekyll-paginate, jekyll-gist]
-
 timezone:       UTC
 future:         true
 markdown:       kramdown
