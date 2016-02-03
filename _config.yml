@@ -1,5 +1,5 @@
-title:              Inside The Source Code
-description:        Inside The Source Code Blog
+title:              "Inside The Source Code"
+description:        "Inside The Source Code Blog"
 disqus_shortname:   insidethesourcecode
 share:              true
 dropcap:            true
@@ -8,9 +8,10 @@ url:                /inside-the-source-code
 
 # owner/author information
 owner:
-  name:             Tomasz Świacko-Świackiewicz
+  name:             "Tomasz Świacko-Świackiewicz"
   avatar:           avatar.png
-  description:      Software Architect, GetResponse
+  email:
+  description:      "Software Architect, GetResponse"
   linkedin:         https://pl.linkedin.com/in/tomasz-%C5%9Bwiacko-%C5%9Bwiackiewicz-9b8029114
   github:           tswiackiewicz
 
@@ -21,21 +22,22 @@ google_verify:
 # Links to include in footer navigation
 # For external links add external: true
 links:
-  - title: Strona główna
+  - title: "Strona główna"
     url: /
-  - title: Archiwum
+  - title: "Archiwum"
     url: /archive
-  - title: Kategorie
+  - title: "Kategorie"
     url: /categories
-  - title: Tagi
+  - title: "Tagi"
     url: /tags
-  - title: O mnie
+  - title: "O mnie"
     url: /about
 
 timezone:       UTC
 future:         true
 markdown:       kramdown
 highlighter:    rouge
+paginate:       5
 
 permalink:      /:categories/:title
 
@@ -47,5 +49,6 @@ kramdown:
   input:            GFM
   syntax_highlighter: rouge
 
+gems:    ["jekyll-paginate"]
 include: [".htaccess"]
 exclude: ["lib", "config.rb", "Gemfile", "Capfile", "Gemfile.lock", "config", "log", "Rakefile", "Rakefile.rb", "tmp", "less", "*.sublime-project", "*.sublime-workspace", "test", "spec", "Gruntfile.js", "package.json", "node_modules"]
