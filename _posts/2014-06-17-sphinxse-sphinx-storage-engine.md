@@ -65,7 +65,7 @@ WHERE
 
 Ze złączenia wyników ze Sphinxa z innymi tabelami będziemy mogli zrezygnować jeśli w indeksie będziemy przechowywali (w postaci atrybutów) także wartości, w których wyszukujemy (np. *title*, *content* itd.). W tym celu konieczna jest zmiana konfiguracji indeksu:
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## source definition
 #############################################################################

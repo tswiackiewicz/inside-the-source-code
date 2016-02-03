@@ -18,7 +18,7 @@ Definicja źródła danych w formacie **TSV** jest bardzo podobna do tej dla for
 
 Przykładowo:
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## source definition
 #############################################################################

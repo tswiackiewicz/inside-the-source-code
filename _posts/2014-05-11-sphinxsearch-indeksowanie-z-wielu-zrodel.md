@@ -20,7 +20,7 @@ Oczywiście nadal powinniśmy zapewnić unikalność identyfikatorów dokumentó
 
 Przykładowa konfiguracja źródła generowanego z wykorzystaniem *xmlpipe2*
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## source definition
 #############################################################################

@@ -21,7 +21,7 @@ Jednak samo ustawienie kodowania nie rozwiązuje wszystkich problemów. Domyśln
 
 Umożliwia to opcja ***charset_table*** (również sekcja *index*):
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -51,7 +51,7 @@ index test_utf8
 
 Podsumowując powyższe rozważania, obsługę języka polskiego (polskie znaki diakrytyczne, zamiana wielkich liter na małe oraz polskich znaków diakrytycznych na ich odpowiedniki *bez ogonków*) uzyskamy dzięki następującej konfiguracji:
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## index definition
 #############################################################################

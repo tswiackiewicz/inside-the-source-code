@@ -63,7 +63,7 @@ Wracając do przytoczonego powyżej odwzorowania tekstów (z przykładowych doku
 
 Uwzględniając wszystkie te etapy procesu indeksowania przez SphinxSearch, przykładowa konfiguracja wygląda następująco:
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -90,7 +90,7 @@ Pod pojęciem **wordforms**, w przypadku SphinxSearch, należy rozumieć pewnego
 
 Alternatywna konfiguracja:
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -145,7 +145,7 @@ sphinxQL> CALL KEYWORDS('Quick <i>brown</i> foxes leap over <b>lazy</b> dogs in 
 
 Chciałbym zwrócić jeszcze uwagę na inną przydatną opcję podczas indeksowania i wyszukiwania. Domyślnie wszystkie znaki nie uwzględnione w ***charset_table*** traktowane są jako separatory. Może jednak pojawić się potrzeba wyszukiwania tokenów zawierających specyficzne znaki, jednocześnie traktując je jako separatory, np. frazę *user@sphinxsearch.com* chcielibyśmy rozbić na tokeny *user*, *sphinxsearch.com* oraz *user@sphinxsearch.com*. W takiej sytuacji skorzystamy z opcji ***blend_chars*** zawierającej znaki, które będą traktowane jako separatory oraz jednocześnie jako prawidłowe znaki. W przedstawionym przykładzie konfiguracja indeksu będzie wyglądała następująco:
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## index definition
 #############################################################################

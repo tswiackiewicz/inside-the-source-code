@@ -14,7 +14,7 @@ Wiele z istniejących aplikacji zostało zbudowanych z wykorzystaniem baz danych
 
 W tym celu konieczne jest wprowadzenie zmian w konfiguracji, tak aby atrybuty w formacie <abbr title="JavaScript Object Notation">JSON<abbr> były indeksowane oraz wyszukiwanie. Definiujemy zatem jeden z atrybutów: ***sql_attr_json***, ***xmlpipe_attr_json*** bądź ***rt_attr_json***.
 
-{% highlight apache %}
+{% highlight conf %}
 #############################################################################
 ## source definition
 #############################################################################
