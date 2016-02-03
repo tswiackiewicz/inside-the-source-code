@@ -20,7 +20,7 @@ Inny, często spotykany przypadek, jest taki, iż istniejącą aplikację chcemy
 
 Rolę pośrednika pomiędzy search daemonem Sphinxa (*searchd*) a bazą danych (*MySQL*, *MariaDb*) pełni pomocnicza tabela o strukturze: 
 
-``` sql
+{% highlight sql %}
 CREATE TABLE `sphinx_results` (
     `id` bigint(20) NOT NULL,
 	`weight` int(11) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE `sphinx_results` (
 	`_sph_distinct` int(11) DEFAULT '0',
 	KEY `query` (`query`(1024))
 ) ENGINE=SPHINX DEFAULT CHARSET=utf8; 
-```
+{% endhighlight %}
 
 Nazwa tabeli oczywiście jest dowolna, ale konieczne jest aby pierwsze trzy kolumny były następujących typów:
 
@@ -47,7 +47,7 @@ Po wysłaniu zapytania i otrzymaniu wyników ze *Sphinxa*, pomocnicza tabela bę
 
 Przykład:
 
-``` sql
+{% highlight sql %}
 SELECT
 	d.`id`,
 	d.`title`,
@@ -61,11 +61,11 @@ ON
 	d.`id` = sphx.`id`
 WHERE
 	sphx.`query` = "@content Lorem ipsum;mode=extended;index=test_sphinxse1;host=127.0.0.1;port=9312;" 
-```
+{% endhighlight %}
 
 Ze złączenia wyników ze Sphinxa z innymi tabelami będziemy mogli zrezygnować jeśli w indeksie będziemy przechowywali (w postaci atrybutów) także wartości, w których wyszukujemy (np. *title*, *content* itd.). W tym celu konieczna jest zmiana konfiguracji indeksu:
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## source definition
 #############################################################################
@@ -84,11 +84,11 @@ source src3 : common
 	sql_field_string 	= content
 	sql_attr_timestamp 	= created_on
 }
-```
+{% endhighlight %}
 
 W tym przypadku nasze zapytanie będzie wyglądało następująco:
 
-``` sql
+{% highlight sql %}
 SELECT
 	`id`,
 	`title`,
@@ -98,13 +98,13 @@ FROM
 	`sphinx_results`
 WHERE
 	`query` = "@content Lorem ipsum;mode=extended;index=test_sphinxse2;host=127.0.0.1;port=9312;"; 
-```
+{% endhighlight %}
 
 Składania zapytań SphinxSE została szczegółowo opisana w [dokumentacji](http://sphinxsearch.com/docs/current.html#sphinxse-using), przedstawię jedynie typowe, godne uwagi przypadki:
 
 * **filtrowanie** - w pierwszej kolejności wykonywane jest wyszukiwanie dla podanej frazy a następnie uzyskane wyniki są filtrowane po wybranym atrybucie, dlatego warto rozważyć (ze względów optymalizacyjnych) czy nie korzystniej będzie zaindeksować i przeszukiwać pole zawierające atrybut
 
-``` sql
+{% highlight sql %}
 SELECT
 	d.`id`,
 	d.`title`,
@@ -118,11 +118,11 @@ ON
 	d.`id` = sphx.`id`
 WHERE
 	sphx.`query` = "@content Lorem ipsum;mode=extended;index=test_sphinxse1;filter=attr1,1;host=127.0.0.1;port=9312;"; 
-```
+{% endhighlight %}
 
 * **grupowanie** - istnieje możliwość grupowania bezpośrednio po atrybucie (***groupby=attr:attr_name***) bądź korzystając z predefiniowanego ziarna czasowego (jeśli atrybut typu *timestamp*), np. ziarno dzienne (***groupby=day:attr_name***), tygodniowe (***groupby=week:attr_name***) itd. Dodatkowo *_sph_count* będzie zawierał liczbę wyników w danej grupie
 
-``` sql
+{% highlight sql %}
 SELECT
 	`id`,
 	`content`,
@@ -131,11 +131,11 @@ FROM
 	`sphinx_results`
 WHERE
 	`query` = "@title sample;mode=extended;index=test_sphinxse2;groupby=attr:content;groupsort=@count desc;host=127.0.0.1;port=9312;"; 
-```
+{% endhighlight %}
 
 * **escape'owanie wartości specjalnych w zapytaniach** - wartości specjalne takie jak np. *;* bądź *=* czy też *,* (przecinek) escape'ujemy za pomocą trzech */* (slash). Dodatkowo jeśli w zapytaniu pojawia się *"* (cudzysłów) a treść całego zapytania SphinxSE (query) zawieramy również pomiędzy *""*, w takim przypadku cudzysłów w szukanej frazie należy poprzedzić siedmioma znakami slash, ponieważ escape'ujemy wyrażenie */"* (trzy / dla slasha oraz kolejne trzy dla "). Przykład - szukamy frazy *"test" 'test' test% @;,=*
 
-``` sql
+{% highlight sql %}
 SELECT
 	`id`,
 	`title`,
@@ -144,7 +144,7 @@ FROM
 	`sphinx_results`
 WHERE
 	`query` = "@content \"\\\\\\\"test\\\\\\\" \\\'test\\\' test\\\% \\\@\\\;\\\,\\\=\";mode=extended;index=test_sphinxse2;host=127.0.0.1;port=9312;"; 
-```
+{% endhighlight %}
 
 Podsumowując, pomimo tego iż ***SphinxSE*** nie oferuje pełnych możliwości wyszukiwania za pomocą SphinxSearch oraz wymaga znajomości specyficznej składni zapytań, warto rozważyć wykorzystanie tego rozwiązania w naszej aplikacji. Możemy w prosty i bardzo wydajny sposób, a przy tym nie wymagający dużych nakładów pracy, umożliwić zaawansowane wyszukiwanie w naszym serwisie.
 

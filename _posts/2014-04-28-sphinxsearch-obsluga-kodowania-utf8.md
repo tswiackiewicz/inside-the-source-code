@@ -21,7 +21,7 @@ Jednak samo ustawienie kodowania nie rozwiązuje wszystkich problemów. Domyśln
 
 Umożliwia to opcja ***charset_table*** (również sekcja *index*):
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -47,11 +47,11 @@ index test_utf8
 	charset_table 	= 0..9, A..Z->a..z, _, a..z, \
 			U+410..U+42F->U+430..U+44F, U+430..U+44F
 }
-```
+{% endhighlight %}
 
 Podsumowując powyższe rozważania, obsługę języka polskiego (polskie znaki diakrytyczne, zamiana wielkich liter na małe oraz polskich znaków diakrytycznych na ich odpowiedniki *bez ogonków*) uzyskamy dzięki następującej konfiguracji:
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -84,7 +84,7 @@ index test_pl_chars2
 			U+0143->n, U+0144->n, U+015A->s, U+015B->s, \
 			U+0179->z, U+017A->z, U+017B->z, U+017C->z
 }
-```
+{% endhighlight %}
 
 Zainteresowanych tematem (oraz obsługą innych języków niż angielski, polski czy rosyjski) odsyłam do lektury:
 

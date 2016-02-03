@@ -24,7 +24,7 @@ Jeśli naszym celem będzie obsługa przykładowo 1000 równoległych połącze�
 4. powiązanie zdarzenia event z deskryptorem fd oraz zarejestrowanie callback'a do obsługi tego zdarzenia
 5. powiązanie zdarzeń *event* oraz *base_event*
 
-``` php
+{% highlight php %}
 final public function listen()
 {
     $this->sock = stream_socket_server('tcp://' . $this->host . ':' . $this->port, $errno, $errstr);
@@ -38,13 +38,13 @@ final public function listen()
     event_add($event);
     event_base_loop($base);
 } 
-```
+{% endhighlight %}
 
 ### Buffered event
 
 Podstawowym zadaniem stawianym przed implementowanym przez nas daemonem w PHP będzie obsługa wielu połączeń równocześnie. Aby postulat ten został zrealizowany, operacje *I/O* (*ang. Input / Output*) powinny być nieblokujące tj. przyjmowanie nowych połączeń nie będzie wstrzymywane na czas obsługi zdarzeń. W tym celu zastosowane zostaną buforowane zdarzenia (*ang. buffered event*) posiadające własne bufory wejścia / wyjścia (*input buffer*, *output buffer*) - przykładowo, gdy wystąpi zdarzenie typu read, dane odebrane z deskryptora trafiają do bufora wejściowego a aplikacja wraca do trybu oczekiwania na nowe zdarzenia.
 
-``` php
+{% highlight php %}
 private function onConnection($sock, $flag, $base)
 {
     // kontrola liczby polaczen...
@@ -72,7 +72,7 @@ private function onConnection($sock, $flag, $base)
 
     return true;
 } 
-```
+{% endhighlight %}
 
 ### Callback watermark
 
@@ -87,7 +87,7 @@ Do ustawiania poziomów watermark dla danego buforowanego zdarzenia możemy wyko
 
 Dla każdego nowego połączenia z daemonem zdefiniowana zostanie nowa instancja buforowanego zdarzenia. Dodatkowo wszystkie utworzone instancje przechowywane będą w wewnętrznym cache'u celem kontroli max liczby połączeń - w momencie zamknięcia danego połączenia, odpowiednia instancja zostanie usunięta z cache'a. Jednak, aby poszczególne połączenia były obsługiwane w momencie wystąpienia zdarzenia danego typu konieczne jest włączenie obsługi, zdefiniowanego dla danego połączenia, buforowanego zdarzenia.
 
-``` php
+{% highlight php %}
 private function onConnection($pSock, $pFlag, $pBase)
 {
     // jesli za duzo polaczen, czekamy az beda jakies dostepne
@@ -107,7 +107,7 @@ private function onConnection($pSock, $pFlag, $pBase)
 
     return true;
 } 
-```
+{% endhighlight %}
 
 ### Typy buforowanych zdarzeń
 

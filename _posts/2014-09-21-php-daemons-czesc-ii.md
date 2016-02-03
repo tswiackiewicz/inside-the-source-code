@@ -16,7 +16,7 @@ Rozwiązanie przedstawione w jednym z poprzednich [artykułów]({{ site.url }}/p
 
 Omawiana powyżej implementacja daemona pozwala na powstawanie procesów zombie, ale również obsługuje takie procesy - w momencie nadejścia nowego połączenia z daemonem wszystkie procesy zombie oczekujące na obsługę tj. połączenia które zrealizowały swoje zadanie bądź zakończyły swoje działanie z powodu *timeoutu*, zostaną zakończone. Niestety, w okresach kiedy nie są obsługiwane żadne połączenia istnieje możliwość występowania dużej liczby procesów zombie. Rozwiązaniem tego problemu może być ignorowanie sygnałów **SIGCHLD** przez proces główny. Wówczas procesy dzieci będą umierały natychmiast, bez oczekiwania na obsługę statusu wyjścia przez proces rodzica.
 
-``` php
+{% highlight php %}
 public function __construct($host = '0.0.0.0', $port = 1234)
 {
     // inicjacja daemona...
@@ -31,13 +31,13 @@ public function __construct($host = '0.0.0.0', $port = 1234)
     pcntl_signal(SIGINT, [$this, "handleSignals"], false);
     pcntl_signal(SIGTERM, [$this, "handleSignals"], false);
 } 
-```
+{% endhighlight %}
 
 ### *SIGUSR2*
 
 Jednym z wymagań stawianych procesowi głównemu jest kontrola liczby połączeń - chcemy zapobiegać nadmiernemu tworzeniu procesów w systemie. W poprzednim rozwiązaniu kontrolowane było to poprzez listę aktywnych procesów dzieci (oraz ich identyfikatorów *PID*). Możliwe było to dzięki obsłudze *SIGCHLD*, gdzie dokładnie wiedzieliśmy który proces kończy swoje działanie. Z kolei w omawianym tutaj rozwiązaniu, zapobiegającym powstawaniu procesów zombie, nie znamy identyfikatora procesu kończącego działanie, ponieważ nie obsługujemy *SIGCHLD*. Jednak funkcjonalność tą zrealizujemy w inny sposób - proces główny będzie kontrolował liczbę aktywnych procesów zwiększając ten licznik w momencie utworzenia nowego procesu do obsługi połączenia oraz zmniejszał go obsługując **SIGUSR2** (procesy dzieci umierając będą wysyłały ten sygnał do procesu głównego). Obsługa sygnałów *SIGUSR2* również będzie następowała w momencie nadejścia nowego połączenia, ale nie będzie to stanowiło problemu gdyż zanim zostanie utworzony nowy proces, licznik aktywnych procesów zostanie zaktualizowany, a tym samym będziemy wiedzieli czy możemy obsłużyć nowe połączenie.
 
-``` php
+{% highlight php %}
 public function __construct($host = '0.0.0.0', $port = 1234)
 {
     // inicjacja daemona...
@@ -70,13 +70,13 @@ protected function closeConnection()
     
     return true;
 } 
-```
+{% endhighlight %}
 
 ### *SIGINT*, *SIGTERM*
 
 Do rozwiązania pozostaje jeszcze jedna kwestia - proces główny umierając, powinien także ubijać aktywne procesy dzieci. Ponieważ nie przechowujemy listy identyfikatorów aktywnych procesów przez proces główny daemona, nie możemy ubijać poszczególnych procesów wysyłając *SIGINT / SIGTERM* do poszczególnych procesów dzieci. Zamiast tego, proces parenta umierając będzie wysyłał *SIGINT / SIGTERM* do wszystkich procesów o tym samym identyfikatorze grupy procesów co proces główny. Poszczególne procesy dzieci nie zostaną do końca odłączone od procesu rodzica (nie będą stawały się liderami sesji), a więc tym samym będą posiadały ten sam identyfikator grupy procesów.
 
-``` php
+{% highlight php %}
 public function handleSignals($sigNo)
 {
     // obsluge sygnalow ograniczamy do SIGINT / SIGTERM (ubicie procesu daemona badz childa)
@@ -96,7 +96,7 @@ public function handleSignals($sigNo)
 
     return true;
 } 
-```
+{% endhighlight %}
 
 Przedstawione powyżej rozwiązanie stanowi tylko jedno z możliwych rozwiązań problemów zombie. Zakres opisanych tutaj zmian jest niewielki względem oryginalnego [rozwiązania]({{ site.url }}/php/php-daemons-czesc-i/), a więc będzie prosty do wprowadzenia. Docelowe rozwiązanie i tak będzie zależało od wymagań stawianemu Waszemu *daemonowi*, niemniej moje rozwiązanie może stanowić dobrą bazę do dalszych prac.
 

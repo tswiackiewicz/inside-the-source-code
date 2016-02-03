@@ -14,7 +14,7 @@ Wiele z istniejących aplikacji zostało zbudowanych z wykorzystaniem baz danych
 
 W tym celu konieczne jest wprowadzenie zmian w konfiguracji, tak aby atrybuty w formacie <abbr title="JavaScript Object Notation">JSON<abbr> były indeksowane oraz wyszukiwanie. Definiujemy zatem jeden z atrybutów: ***sql_attr_json***, ***xmlpipe_attr_json*** bądź ***rt_attr_json***.
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## source definition
 #############################################################################
@@ -34,7 +34,7 @@ source src4 : common
 	sql_attr_json 		= json_content
 	sql_attr_timestamp 	= created_on
 }
-```
+{% endhighlight %}
 
 ### *sql_attr_json*
 
@@ -46,7 +46,7 @@ Oprócz wspomnianej powyżej definicji atrybutów typu *sql_attr_json*, warto r�
 
 Przykład: indeksujemy dokumenty JSON (pole *json_content*) postaci
 
-``` json
+{% highlight json %}
 {
     "name"  : "Alice",
     "uid"   : 450
@@ -64,15 +64,15 @@ Przykład: indeksujemy dokumenty JSON (pole *json_content*) postaci
     "title" : "some title",
     "tags": [
         "tag1",
-	"tag2",
-	"tag3"
+	    "tag2",
+	    "tag3"
     ]
 } 
-```
+{% endhighlight %}
 
 oraz wyszukujemy
 
-``` sql
+{% highlight sql %}
 SELECT
 	`id`,
 	`title`,
@@ -104,7 +104,7 @@ WHERE
 	json_content.uid > 455;
 ORDER BY
 	json_content.name ASC; 
-```
+{% endhighlight %}
 
 Więcej zapytań znajdziecie w linkach zamieszczonych na końcu wpisu. Chciałbym jednak zwrócić uwagę na następujące problemy:
 

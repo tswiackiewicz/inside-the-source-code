@@ -28,7 +28,7 @@ Z uwagi na wymagania wobec generowania raportów i eksportu danych do XLS (kodow
 
 Dlatego też konieczne było zapoznanie się z [dokumentacją](http://download.microsoft.com/download/2/4/8/24862317-78F0-4C4B-B355-C7B2C1D997DB/%5BMS-XLS%5D.pdf) formatu *XLS* a dokładniej <abbr title="Binary Interchange File Format">BIFF<abbr>. Efektem weekendu spędzonego na studiowaniu tej dokumentacji jest moja wersja klasy umożliwiającej zapis wiersz po wierszu do arkusza MS Excel - [SimpleExcelStreamWriter](https://github.com/tswiackiewicz/SimpleExcelStreamWriter). Przykładowe użycie:
 
-``` php
+{% highlight php %}
 $objExcelStream = new SimpleExcelStreamWriter('test.xls');
 $objExcelStream->addNextRow($headers);
 $objExcelStream->addNextRow($row_1);
@@ -36,7 +36,7 @@ $objExcelStream->addNextRow($row_2);
 $objExcelStream->addNextRow($row_3);
 $objExcelStream->addNextRow($row_n);
 $objExcelStream->close();
-```
+{% endhighlight %}
 
 Podsumowując, ***SimpleExcelStreamWriter*** to przykład prostego i dość wydajnego rozwiązania umożliwiającego zapis wiersz po wierszu tabelarycznych danych w formacie .xls. Co prawda posiada szereg ograniczeń, np. tylko pojedynczy arkusz, ale do eksportu raportów powinno to w zupełności wystarczyć. Na koniec jeszcze kilka przydatnych linków:
 

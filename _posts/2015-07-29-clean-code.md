@@ -119,19 +119,19 @@ Podczas kodowania możesz zauważyć, że odpytujesz jeden obiekt i na podstawie
 
 Przykład, zamiast:
 
-``` php
+{% highlight php %}
 if ($user->isAdmin()) {
     $message = $user->adminMessage;	
 } else {
     $message = $user->userText;
 }
-```
+{% endhighlight %}
 
 lepiej:
 
-``` php
+{% highlight php %}
 $message = $user->getMessage();
-```
+{% endhighlight %}
 
 **Prawo Demeter** mówi, że metoda danego obiektu może odwoływać się wyłącznie do metod należących do:
 
@@ -142,9 +142,9 @@ $message = $user->getMessage();
 
 Dzięki temu ograniczymy powiązania pomiędzy obiektami, kod będzie łatwiejszy do zrozumienia a ponadto unikniemy niebezpiecznych konstrukcji znanych jako *Train wrecks* gdzie tak naprawdę nie wiemy na jakich obiektach operujemy:
 
-``` php
+{% highlight php %}
 $path = $user->getAvatar()->getPhoto()->getPath();
-```
+{% endhighlight %}
 
 Jako wady ścisłego stosowania *Law of Demeter* możemy wspomnieć fakt, iż może prowadzić do powstania wielu metod, których jedyną odpowiedzialnością będzie delegowanie wykonywania operacji a w efekcie nasz interfejs będzie się rozrastał.
 
@@ -157,7 +157,7 @@ Bardzo prosta zasada - unikajmy wielopoziomowych zagłębień.
 
 Zamiast:
 
-``` php
+{% highlight php %}
 function foo() {
 
     // ...
@@ -180,11 +180,11 @@ function foo() {
         return false;
     }
 }
-```
+{% endhighlight %}
 
 lepiej
 
-``` php
+{% highlight php %}
 function foo() {
 
     // ...
@@ -207,7 +207,7 @@ function foo() {
         return false;
     }
 }
-```
+{% endhighlight %}
 
 Dobra rada - *Return early and often*
 

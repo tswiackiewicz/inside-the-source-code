@@ -20,7 +20,7 @@ Oczywiście nadal powinniśmy zapewnić unikalność identyfikatorów dokumentó
 
 Przykładowa konfiguracja źródła generowanego z wykorzystaniem *xmlpipe2*
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## source definition
 #############################################################################
@@ -41,7 +41,7 @@ source src2
  
 	xmlpipe_fixup_utf8 	= 1
 }
-```
+{% endhighlight %}
 
 Wydawać by się mogło, że *xmlpipe2* jest rozwiązaniem idealnym, ale tak nie jest. Indeksowanie danych w ten sposób jest dużo wolniejsze niż w przypadku bezpośredniego pobierania z bazy danych. Niemniej, nadal jest dość wydajne. Dodatkowo *xmlpipe2* posiada ograniczenie co do rozmiaru danych dla pojedynczego pola (*max_xmlpipe2_field*) oraz typowe ograniczenia formatu XML m.in. konieczność escape'owania znaków specjalnych, np. *<, &*.
 

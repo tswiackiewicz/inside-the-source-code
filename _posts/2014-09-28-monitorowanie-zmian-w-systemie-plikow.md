@@ -16,7 +16,7 @@ Ogólnie przyjętym wzorcem stosowanym w różnego rodzaju aplikacjach jest logo
 
 **Inotify** jest mechanizmem, wbudowanym w kernel Linuxowy, bazującym na paradygmacie wszystko w systemach Linuxowych jest plikami - po prostu operuje na deskryptorach plików. Umożliwia monitorowanie zmian w systemie plików i reaguje natychmiast w momencie wystąpienia zdarzenia, np. utworzenia nowego pliku. Wykorzystanie tego frameworka, z poziomu API PHP, sprowadzania się do utworzenia instancji inotify oraz podpięcia *watcher'ów* monitorujących zmiany w danych katalogach.
 
-``` php
+{% highlight php %}
 public function __construct()
 {
     if ( !extension_loaded('inotify')) {
@@ -48,7 +48,7 @@ public function add($path)
 
     return true;
 } 
-```
+{% endhighlight %}
 
 ### Monitorowane zdarzenia
 
@@ -56,7 +56,7 @@ Wykorzystanie powyższego fragmentu kodu umożliwia reagowanie na dwa typy zdarz
 
 Kolejnym krokiem, po utworzeniu instancji *inotify* oraz zdefiniowaniu monitorowych typów zdarzeń i katalogów, jest reagowanie na te zdarzenia. Każde zarejestrowane zdarzenie w systemie plików, zwracane przez ***inotify_read()***, zawiera deskryptor podpiętego w*atcher'a* oraz dopasowaną maskę (typ zdarzenia, np. *IN_CREATE*). Na podstawie tych atrybutów możemy reagować według potrzeb, np. zwiększając licznik utworzonych plików.
 
-``` php
+{% highlight php %}
 public function run()
 {
     // brak instancji inotify badz nie dodano katalogow do monitorowania
@@ -108,13 +108,13 @@ public function run()
 
     return true;
 }
-```
+{% endhighlight %}
 
 ### Buforowanie zdarzeń
 
 Monitorowane zmiany w systemie plików są buforowane dzięki czemu możliwa jest obsługa wielu zdarzeń równocześnie. Każdy z podłączonych watcher'ów, a więc każdy ze śledzonych katalogów, posiada własny bufor. Jeśli zdarzeń, czyli zmian w systemie plików będzie bardzo dużo bądź nie zdążymy ich obsłużyć odpowiednio szybko, może wystąpić przepełnienie bufora. Sytuacja taka sygnalizowana jest poprzez maskę ***IN_Q_OVERFLOW*** zwracaną jako jeden z atrybutów zarejestrowanych zdarzeń.
 
-``` php
+{% highlight php %}
 public function run()
 {
     // brak instancji inotify badz nie dodano katalogow do monitorowania
@@ -137,7 +137,7 @@ public function run()
 
     return true;
 } 
-```
+{% endhighlight %}
 
 Rozmiar bufora kontrolowany jest poprzez zmianę parametrów konfiguracyjnych inotify, do których możemy zaliczyć:
 

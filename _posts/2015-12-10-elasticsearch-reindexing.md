@@ -29,7 +29,7 @@ W oficjalnym [blogu](https://www.elastic.co/blog/changing-mapping-with-zero-down
 
 I. założenia aliasów na istniejącym indeksie (*my_index_v1*),
 
-``` json
+{% highlight bash %}
 curl -XPOST "http://localhost:9200/_aliases" -d '
 {
     "actions": [
@@ -38,7 +38,7 @@ curl -XPOST "http://localhost:9200/_aliases" -d '
     ]
 }
 '
-```
+{% endhighlight %}
 
 II. zmiany aplikacji, tak aby korzystała z aliasów (*read_index*) oraz (*write_index*) zamiast bezpośrednio z nazwy indeksu
 
@@ -46,7 +46,7 @@ III. założenie nowego indeksu z nową konfiguracją (bądź mappingiem)
 
 IV. dodanie nowego indeksu (*my_index_v2*) do aliasu z odczytem (*read_index*), podczas zapytań wykorzystywane będą dane z obu indeksów (*my_index_v1*, *my_index_v2*)
     
-``` json
+{% highlight bash %}
 curl -XPOST "http://localhost:9200/_aliases" -d '
 {
     "actions": [
@@ -54,11 +54,11 @@ curl -XPOST "http://localhost:9200/_aliases" -d '
     ]
 }
 '
-```
+{% endhighlight %}
     
 V. przepięcie aliasu z zapisem (*write_index*) na nowy indeks    
 
-``` json
+{% highlight bash %}
 curl -XPOST "http://localhost:9200/_aliases" -d '
 {
     "actions": [
@@ -67,7 +67,7 @@ curl -XPOST "http://localhost:9200/_aliases" -d '
     ]
 }
 '
-```
+{% endhighlight %}
 
 VI. migracja historycznych danych z *my_index_v1* do *my_index_v2*
 

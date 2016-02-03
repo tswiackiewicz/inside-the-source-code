@@ -20,7 +20,7 @@ Zagadnieniami odmiany różnych form wyrażeń, jak i innymi kwestiami przetwarz
 
 *SphinxSearch* posiada wbudowany lematyzer dla języka rosyjskiego oraz stemmery dla angielskiego, czeskiego i arabskiego. Natomiast, począwszy od wersji *2.2.1-beta*, oprócz wspomnianego lematyzera dla języka rosyjskiego i stemmerów angielskiego, czeskiego i arabskiego, zawiera również lematyzery języka angielskiego i niemieckiego oraz stemmer rosyjskiego. Ponadto istnieje możliwość podpięcia stemmerów oferowanych w ramach projektu [Snowball](http://snowball.tartarus.org/). Aby skorzystać z wyżej wymienionych wbudowanych narzędzi (lematyzery i stemmer) trzeba odpowiednio skonfigurować indeksy - opcja **morphology** w sekcji *index*, np. *morphology = stem_en, lemmatize_ru*.
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -33,11 +33,11 @@ index test_eng_stemmer
 	morphology 		= stem_en
 	min_stemming_len 	= 4
 }
-```
+{% endhighlight %}
 
 W przypadku języka polskiego sytuacja jest dużo bardziej złożona - nie istnieją wbudowane bądź gotowe (*Snowball* - *libstemmer*) biblioteki, konieczne jest skorzystanie z uprzednio przygotowanego słownika wyrazów. Przykładowy słownik można znaleźć [tutaj](http://blog.thedigitals.pl/fileadmin/uploads/wordform-pl-dict-urf-8.zip), załączamy go konfigurując opcję **wordforms** w sekcji *index* podając ścieżkę do pliku słownika.
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -56,7 +56,7 @@ index test_pl_wordforms
  
 	wordforms 		= /etc/sphinxsearch/wordforms-pl-dict.txt
 } 
-```
+{% endhighlight %}
 
 Efekty wprowadzonych zmian będą następujące: szukając wyrażenia *cats* otrzymamy także wyniki zawierające słowo *cat* (dla indeksu *test_eng_stemmer*) oraz szukając *żółwiem* znajdziemy także te ze słowami *żółw*, *żółwiowi*, *żółwiami* itd. (w przypadku indeksu *test_pl_wordforms*).
 
