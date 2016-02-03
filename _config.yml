@@ -38,8 +38,7 @@ gems: [jekyll-paginate, jekyll-gist]
 timezone:       UTC
 future:         true
 markdown:       kramdown
-paginate:       5
-paginate_path:  "page:num"
+highlighter:    rouge
 
 permalink:      /:categories/:title
 
