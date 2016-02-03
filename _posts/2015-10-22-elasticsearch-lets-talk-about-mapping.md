@@ -35,7 +35,7 @@ W tym celu określamy jakie pola będą zawarte w dokumentach danego typu, jaki 
 Przykładowy mapping (w formacie *JSON*):
 
 
-``` json
+{% highlight json %}
 {
     "tweet" : {
         "properties" : {
@@ -50,7 +50,7 @@ Przykładowy mapping (w formacie *JSON*):
         }
     }
 }
-``` 
+{% endhighlight %} 
 
 ### Time-based indices
 
@@ -68,7 +68,7 @@ Szablon może zawierać zarówno definicję typów, formatów oraz analizatorów
 
 Przykład:
 
-```json
+{% highlight bash %}
 curl -XPUT "http://localhost:9200/_template/application_logs" -d '
 {
     "template": "application_logs-*",
@@ -127,7 +127,7 @@ curl -XPUT "http://localhost:9200/_template/application_logs" -d '
     }
 }
 '
-```
+{% endhighlight %}
  
 Wracając do poruszonego w poprzedniej sekcji zagadnienia, a mianowicie identycznych mappingów dla indeksów różniących się jedynie nazwą, wystarczy w sekcji *template* szablonu podać wzorzec, zgodnie z którym dopasowana zostanie nazwa indeksu. Korzystając z przedstawionego powyżej szablonu, mapping tam zdefiniowany zostanie ustawiony dla wszystkich indeksów, których nazwa rozpoczyna się od *application_logs-*, np. *application_logs-2015.10*, *application_logs-2015.11* itd. 
 

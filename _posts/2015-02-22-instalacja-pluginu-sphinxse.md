@@ -16,12 +16,13 @@ W artykule zatytułowanym [SphinxSE - Sphinx Storage Engine]({{ site.url}}/sphin
 
 Dodatkowy engine (jak choćby *MyISAM*, *InnoDB*, *Memory* itd. ) dla baz danych z rodziny MySQL (*MySQL*, *MariaDB*, *Percona Server*) dostarczany jest w postaci pluginu:
 
-``` sql
+{% highlight sql %}
 [mysql]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
-```
+{% endhighlight %}
+
 Jeśli instalacja pluginu przebiegła pomyślnie, na liście dostępnych silników powinien pojawić się SPHINX:
 
-``` sql
+{% highlight sql %}
 [mysql]> SHOW ENGINES;
 +--------------------+---------+----------------------------------------------------------------------------+--------------+------+------------+
 | Engine             | Support | Comment                                                                    | Transactions | XA   | Savepoints |
@@ -36,14 +37,14 @@ Jeśli instalacja pluginu przebiegła pomyślnie, na liście dostępnych silnik�
 | :                  | YES     | :                                                                          | NO           | NO   | NO         |
 | PERFORMANCE_SCHEMA | YES     | Performance Schema                                                         | NO           | NO   | NO         |
 +--------------------+---------+----------------------------------------------------------------------------+--------------+------+------------+  
-```
+{% endhighlight %}
 
 Następnie możemy przystąpić do utworzenia tabeli z ***ENGINE=SPHINX*** i rozpocząć *full-text* search zadając klasyczne zapytania SQL. Niestety w przypadku Percona-Server, nie wszystko jest takie proste...
 
-``` bash
+{% highlight bash %}
 [Percona]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
 ERROR 1126 (HY000): Can't open shared library '/usr/lib/mysql/plugin/ha_sphinx.so' (errno: 2 /usr/lib/mysql/plugin/ha_sphinx.so: cannot open shared object file: No such file or directory) 
-```
+{% endhighlight %}
 
 ### *ha_sphinx.so*
 
@@ -53,74 +54,74 @@ Procedura kompilacji pluginu wygląda następująco:
 
 &#49;. przygotowanie katalogu roboczego
 
-``` bash
+{% highlight bash %}
 [tswiackiewicz@localhost:~]$ cd ~; mkdir percona_sphinx; cd percona_sphinx
-```
+{% endhighlight %}
 
 &#50;. pobranie źródeł Percona-Server (wersja zgodną z tą z której korzystamy) oraz ich rozpakowanie
 
-``` bash
+{% highlight bash %}
 [tswiackiewicz@localhost:~/percona_sphinx]$ wget http://www.percona.com/downloads/Percona-Server-5.6/Percona-Server-5.6.22-72.0/source/tarball/percona-server-5.6.22-72.0.tar.gz
 [tswiackiewicz@localhost:~/percona_sphinx]$ tar -xzf percona-server-5.6.22-72.0.tar.gz
-```
+{% endhighlight %}
 
 &#51;. pobranie źródeł SphinxSearch oraz ich rozpakowanie
 
-``` bash
+{% highlight bash %}
 [tswiackiewicz@localhost:~/percona_sphinx]$ wget http://sphinxsearch.com/files/sphinx-2.2.6-release.tar.gz
 [tswiackiewicz@localhost:~/percona_sphinx]$ tar -xzf sphinx-2.2.6-release.tar.gz
-```
+{% endhighlight %}
 
 &#52;. kopiowanie źródeł pluginu do obsługi SphinxSE do Percona-Server
 
-``` bash
+{% highlight bash %}
 [tswiackiewicz@localhost:~/percona_sphinx]$ mkdir percona-server-5.6.22-72.0/storage/sphinx
 [tswiackiewicz@localhost:~/percona_sphinx]$ cp sphinx-2.2.6-release/mysqlse/* percona-server-5.6.22-72.0/storage/sphinx/
-```
+{% endhighlight %}
 
 &#53;. kompilacja źródeł Percony i wygenerowanie biblioteki *ha_sphinx.so*
 
-``` bash
+{% highlight bash %}
 [tswiackiewicz@localhost:~/percona_sphinx]$ cd percona-server-5.6.22-72.0; sh BUILD/autorun.sh; ./configure --with-plugins=sphinx
 [tswiackiewicz@localhost:~/percona_sphinx]$ cd storage/sphinx; make
-```
+{% endhighlight %}
 
 &#54;. kopiowanie biblioteki do docelowej lokalizacji oraz instalacja pluginu
 
-``` bash
+{% highlight bash %}
 [tswiackiewicz@localhost:~/percona_sphinx]$ sudo cp ~/percona_sphinx/percona-server-5.6.22-72.0/storage/sphinx/ha_sphinx.so /usr/lib/mysql/plugin
 [tswiackiewicz@localhost:~]$ sudo service mysql restart
 mysql stop/waiting
 mysql start/running, process 6662
-```
+{% endhighlight %}
 
-``` sql
+{% highlight sql %}
 [Percona]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
-```
+{% endhighlight %}
 
 ### Ubuntu 14.04
 
 Przedstawiona powyżej procedura bardzo dobrze sprawdziła się w przypadku środowiska *Mac OS X Yosemite*, ale niestety problemy wystąpiły w *Ubuntu 14.04* (*Percona-Server* zainstalowany za pomocą apt-get):
 
-``` bash
+{% highlight bash %}
 [Percona]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
 ERROR 1126 (HY000): Can't open shared library '/usr/lib/mysql/plugin/ha_sphinx.so' (errno: 2 /usr/lib/mysql/plugin/ha_sphinx.so: undefined symbol: _ZTI7handler)
-```
+{% endhighlight %}
 
 Analiza tego błędu i fachowych porad doprowadziła mnie do przyczyny - plugin trzeba skompilować z dokładnie takimi flagami z jakimi przygotowana została dostarczona dystrybucja naszej wersji bazy danych. Aby móc podejrzeć parametry kompilacji konieczne jest pobranie źródeł
 
-``` bash
+{% highlight bash %}
 [tswiackiewicz@localhost:~/percona_sphinx]$ mkdir percona-server-source; cd percona-server-source; sudo apt-get source percona-server-5.6
-```
+{% endhighlight %}
 
 oraz wyszukiwanie parametrów kompilacji (cmake) w pliku percona-server-{$VERSION}/debian/rules
 
 Wracając do naszej procedury kompilacji, kroki 1-4 są identyczne, natomiast w kroku 5 wykonujemy polecenie cmake z takimi parametrami z jakimi została skompilowana nasza baza danych, np.
 
-``` bash
+{% highlight bash %}
 [tswiackiewicz@localhost:~/percona_sphinx]$ cd percona-server-5.6.22-72.0; cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_CONFIG=mysql_release -DCMAKE_CXX_FLAGS="-O3 -g -felide-constructors -fno-exceptions -fno-rtti -fno-strict-aliasing" -DMYSQL_UNIX_ADDR=/var/run/mysqld/mysqld.sock -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_LIBWRAP=ON -DWITH_ZLIB=system -DWITH_SSL=system -DCOMPILATION_COMMENT="Percona Server (GPL), Release 72.0, Revision 738" -DSYSTEM_TYPE="debian-linux-gnu" -DINSTALL_LAYOUT=RPM -DINSTALL_LIBDIR=lib/i386-linux-gnu -DINSTALL_PLUGINDIR=lib/mysql/plugin -DWITH_EMBEDDED_SERVER=OFF -DWITH_INNODB_MEMCACHED=ON -DWITH_ARCHIVE_STORAGE_ENGINE=ON -DWITH_BLACKHOLE_STORAGE_ENGINE=ON -DWITH_FEDERATED_STORAGE_ENGINE=ON -DWITH_PAM=ON -DWITH_EXTRA_CHARSETS=all
 [tswiackiewicz@localhost:~/percona_sphinx]$ cd storage/sphinx; make
-```
+{% endhighlight %}
 
 Krok 6 jest identyczny tj. kopiowanie biblioteki a następnie instalacja pluginu.
 

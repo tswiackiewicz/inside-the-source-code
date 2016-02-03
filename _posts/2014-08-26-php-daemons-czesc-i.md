@@ -16,7 +16,7 @@ Bardzo często, w zależności od rozwiązywanego problemu, stosuje się powszec
 
 Głównym wyzwaniem przed jakim staje taki daemon jest obsługa wielu równoległych połączeń. Niestety, język PHP nie został zaprojektowany z myślą o obsłudze wielu wątkow. Zatem, pozostaje nam skorzystać z tradycyjnej obsługi wielu zadań (*ang. multitasking*) znanej z systemów *Unix* - powielanie procesów za pomocą forka (*ang. forking*): tworzony jest nowy proces (będący duplikatem procesu głównego ale z pewnymi wyjątkami), którego przetwarzanie rozpoczyna się *w miejscu* wywołania ***pcntl_fork()***, natomiast oryginalny proces kontynuuje dalej swoje działanie. W ten sposób uzyskaliśmy dwa egzemplarze naszego oryginalnego procesu rozróżniane na podstawie identyfikatora *PID* (nowy proces otrzymuje swój indywidualny *PID*). Wracając do naszego *daemona*, proces główny (*ang. parent*) odpowiedzialny będzie za przyjmowanie przychodzących połączeń, stworzenie nowego procesu (*ang. child*) i przekazanie obsługi połączenia do tego procesu. Dzięki temu każde połączenie z daemonem obsługiwane jest przez dedykowany proces a tym samym możliwa jest realizacja wielu zadań równolegle.
 
-``` php
+{% highlight php %}
 protected function processConnection(AbstractDaemonConnection $conn)
 {
     $pid = pcntl_fork();
@@ -32,13 +32,13 @@ protected function processConnection(AbstractDaemonConnection $conn)
 
     // kod procesu dziecka...
 } 
-```
+{% endhighlight %}
 
 ### Sygnały
 
 Podejście takie wymusza obsługę komunikacji między procesami. Komunikacja międzyprocesowa realizowana będzie za pomocą, znanych z systemów Unixowych, **sygnałów** (*ang. signals*). Przykładowo, proces dziecko kończąc swoje działanie wysyła sygnał *SIGCHLD*, który dalej obsługiwany jest przez proces rodzica (główny) bądź proces główny kończąc swoje działanie wysyła *SIGTERM* do procesów dzieci (kończąc ich działanie).
 
-``` php
+{% highlight php %}
 public function __construct($host = '0.0.0.0', $port = 1234)
 {
     // inicjalizacja...
@@ -56,13 +56,13 @@ public function handleSignals($sigNo, $pid = null, $status = null)
 {
     // obsluga sygnalow...
 }
-```
+{% endhighlight %}
 
 ### Timeouty
 
 Warto wzbogacić naszego daemona o obsługę *timeout'ów*, ponieważ możemy dość łatwo wyczerpać pulę dostępnych połączeń jeśli wszyscy klienci zaraz po podłączeniu do daemona zaprzestaną dalszej aktywności. Do obsługi timeout'ów również wykorzystane zostaną sygnały - *SIGALRM*.
 
-``` php
+{% highlight php %}
 public function handleTimeout($sigNo)
 {
     if (SIGALRM == $sigNo and posix_getpid() != $this->parent) {
@@ -84,7 +84,7 @@ protected function processConnection(AbstractDaemonConnection $conn)
 
     // jakis kod...
 } 
-```
+{% endhighlight %}
 
 Aby zapobiec nadmiernemu obciążeniu naszego systemu (poprzez niekontrolowane forkowanie procesów) bądź sytuacji znanej jako [fork bomb](http://en.wikipedia.org/wiki/Fork_bomb), konieczne jest zarządzanie pulą dostępnych połączeń. Odpowiedzialny za to będzie proces główny, który przechowuje listę aktywnych połączeń. W przypadku przekroczenia dopuszczalnej liczby połączeń, wstrzymuje przyjmowanie nowych połączeń do czasu zwolnienia puli.
 
@@ -92,7 +92,7 @@ Aby zapobiec nadmiernemu obciążeniu naszego systemu (poprzez niekontrolowane f
 
 Ostatnim elementem układanki jest zapewnienie komunikacji na linii klient-serwer. Wykorzystane zostaną tutaj **sockety** (*ang. sockets*).
 
-``` phph
+{% highlight php %}
 public function listen()
 {
     $this->sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -110,7 +110,7 @@ public function listen()
 
     socket_close($this->sock);
 } 
-```
+{% endhighlight %}
 
 Daemon, z definicji, jest procesem działającym w tle (*ang. background*) oraz dodatkowo raz uruchomiony powinien działać zawsze - stąd w powyższym fragmencie kodu warunek *while(true)*. Dodatkowo dobrze zaimplementowany daemon powinien zapobiegać uruchomieniu wielu instancji w danym środowisku (np. poprzez *locks*) czy też nie powinien wyświetlać komunikatów na *STDOUT* (w powyższym przykładzie jedynie w celach diagnostycznych). W omawianym tutaj przykładzie przedstawione zostały jedynie podstawowe mechanizmy umożliwiające implementację daemona w PHP, ale pewne elementy nadal wymagają pracy, np. obsługa błędów czy też proces nadrzędny restartujący daemona w przypadku błędu. Tym samym zachęcam do korzystania z mojego przykładu i dostosowania go do Waszych potrzeb.
 

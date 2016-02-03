@@ -29,17 +29,17 @@ Informacja o rozpoczęciu obsługi nowego połączenia bądź zakończeniu jego 
 
 Wymienione powyżej mechanizmy obsłużone mogą być również za pomocą *PHP*. Przykładowo, *pipes* realizowane są za pomocą funkcji ***popen()*** / ***proc_open()*** / ***pclose()***, kolejki <abbr title="First In First Out">FIFO<abbr> - ***posix_mkfifo()***, locks - ***flock()*** itd. Poszczególne rozwiązania różnią się między sobą i nie każde nadaje się do obsługi danych funkcjonalności. W naszym przypadku, do implementacji globalnego licznika aktywnych połączeń, najlepszym mechanizmem będzie *pamięć współdzielona* między procesami dzieci i procesem głównym.
 
-``` phph
+{% highlight php %}
 public function __construct()
 {
     $this->shm = shm_attach($this->getShmKey(), 512, 0666);
     $this->sem = sem_get($this->getSemKey(), 1, 0666, 1);
 } 
-```
+{% endhighlight %}
 
 **Shared memory** została wybrana, ponieważ wszystkie procesy będą działały w obrębie jednej lokalnej maszyny, dodatkowo zmiany licznika aktywnych połączeń powinny być bardzo szybkie stąd też oparcie tego mechanizmu na plikach czy gniazdkach nie będzie najlepszym wyborem. W pamięci współdzielonej przechowywana będzie liczba procesów utworzonych do obsługi poszczególnych klientów - w momencie *forkowania* (przez proces główny) licznik będzie podbijany, natomiast kończąc swoje działanie wartość ta będzie pomniejszana (przez proces dziecka).
 
-``` php
+{% highlight php %}
 protected function processConnection(DaemonConnection $conn)
 {
     $pid = pcntl_fork();
@@ -65,7 +65,7 @@ protected function closeConnection()
 
     return true;
 } 
-```
+{% endhighlight %}
 
 ### Semafory
 
@@ -79,7 +79,7 @@ Szybkość pamięci współdzielonej wynika w głównej mierze z tego, oprócz f
 6. założenie semafora, zmniejszenie licznika, zwolnienie semafora
 7. zakończenie działania procesu dziecka
 
-``` php
+{% highlight php %}
 public function get()
 {
     $value = 0;
@@ -114,11 +114,11 @@ public function increase($value = 1)
 
     return $value;
 } 
-```
+{% endhighlight %}
 
 Warto zwrócić uwagę jeszcze na jedną istotną kwestię. Otóż, współdzielonej pamięci nie obejmuje mechanizm *reference counter* wykorzystywany przez PHPowy <abbr title="Garbage collector">GC<abbr>. Oznacza to, iż kończąc działanie daemona nie zostanie zwolniona pamięć zarezerwowana dla segmentu shared memory. W związku z tym konieczne jest ręczne zwolnienie tej pamięci, w przeciwnym razie będzie ona zajęta do czasu restartu maszyny.
 
-``` php
+{% highlight php %}
 public function cleanUp()
 {
     if (is_resource($this->shm)) {
@@ -126,7 +126,7 @@ public function cleanUp()
         $this->shm = null;
     }
 } 
-```
+{% endhighlight %}
 
 Wprowadzenie licznika opartego o współdzieloną pamięć nieco zwolni szybkość działania naszego daemona z uwagi na konieczność *synchronizacji* dostępu opartej o **semafory**. Niemniej, dzięki temu, nasz daemon będzie odporny na problemy opisane powyżej (nieprawidłowe zmniejszanie licznika w przypadku równoczesnego kończenia pracy przez wiele połączeń) a oparta na tym liczniku kontrola max liczby połączeń zabezpieczy nas przed zbytnim obciążeniem maszyny. Jeśli uzyskana w ten sposób wydajność daemona będzie za mała, będziemy mogli skalować się dokładając kolejne node'y do naszego clustra. Ciekawą alternatywą dla zaproponowanego tutaj licznika aktywnych połączeń opartego o shared memory może być <abbr title="Alternative PHP Cache">APC<abbr>. Jednak, przynajmniej według mnie, bezpośrednia kontrola nad tym co dokładnie dzieje się w aplikacji jest lepszym rozwiązaniem a koniec końców APC i tak działa w oparciu o shared memory bądź *mmap* (w zależności od konfiguracji). Inne godne rozważenia alternatywy to rozwiązania oparte o */dev/shm*, *php://memory* czy też *tmpfs*. Zachęcam do eksperymentów, korzystania z proponowanego przeze mnie rozwiązania no i zgłaszania własnych uwag i wniosków.
 

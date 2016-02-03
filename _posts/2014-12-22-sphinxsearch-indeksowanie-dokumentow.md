@@ -63,7 +63,7 @@ Wracając do przytoczonego powyżej odwzorowania tekstów (z przykładowych doku
 
 Uwzględniając wszystkie te etapy procesu indeksowania przez SphinxSearch, przykładowa konfiguracja wygląda następująco:
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -78,7 +78,7 @@ index test_indexer_stemmer
     wordforms           = /etc/sphinxsearch/synonyms.txt
     stopwords           = /etc/sphinxsearch/stopwords.txt
 }
-```
+{% endhighlight %}
 
 Proponowana konfiguracja zawiera takie elementy jak *stopwords*, *wordforms* oraz *morphology*.
 
@@ -90,7 +90,7 @@ Pod pojęciem **wordforms**, w przypadku SphinxSearch, należy rozumieć pewnego
 
 Alternatywna konfiguracja:
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -103,11 +103,11 @@ index test_indexer_lemmatizer
     morphology          = lemmatize_en_all
     stopwords           = /etc/sphinxsearch/stopwords.txt
 } 
-```
+{% endhighlight %}
 
 Zweryfikujmy zatem jak ostatecznie wygląda po stronie naszego silnika wyszukiwawczego:
 
-``` sql
+{% highlight sql %}
 sphinxQL> CALL KEYWORDS('The quick brown fox jumped over the lazy dog', 'test_indexer_stemmer');
 +------+-----------+------------+
 | qpos | tokenized | normalized |
@@ -121,9 +121,9 @@ sphinxQL> CALL KEYWORDS('The quick brown fox jumped over the lazy dog', 'test_in
 | 9    | dog       | dog        |
 +------+-----------+------------+
 7 rows in set (0.00 sec)  
-```
+{% endhighlight %}
 
-``` sql
+{% highlight sql %}
 sphinxQL> CALL KEYWORDS('Quick <i>brown</i> foxes leap over <b>lazy</b> dogs in summer', 'test_indexer_stemmer');
 +------+-----------+------------+
 | qpos | tokenized | normalized |
@@ -139,13 +139,13 @@ sphinxQL> CALL KEYWORDS('Quick <i>brown</i> foxes leap over <b>lazy</b> dogs in 
 | 9    | summer    | summer     |
 +------+-----------+------------+
 9 rows in set (0.00 sec)   
-```
+{% endhighlight %}
 
 ### Blend chars
 
 Chciałbym zwrócić jeszcze uwagę na inną przydatną opcję podczas indeksowania i wyszukiwania. Domyślnie wszystkie znaki nie uwzględnione w ***charset_table*** traktowane są jako separatory. Może jednak pojawić się potrzeba wyszukiwania tokenów zawierających specyficzne znaki, jednocześnie traktując je jako separatory, np. frazę *user@sphinxsearch.com* chcielibyśmy rozbić na tokeny *user*, *sphinxsearch.com* oraz *user@sphinxsearch.com*. W takiej sytuacji skorzystamy z opcji ***blend_chars*** zawierającej znaki, które będą traktowane jako separatory oraz jednocześnie jako prawidłowe znaki. W przedstawionym przykładzie konfiguracja indeksu będzie wyglądała następująco:
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## index definition
 #############################################################################
@@ -159,11 +159,11 @@ index test_blend_chars
     blend_chars         = +, &, @, -, !
     blend_mode          = trim_head, trim_tail, trim_none
 } 
-```
+{% endhighlight %}
 
 Dodatkowo istnieje możliwość skonfigurowania w jaki sposób wyrażenie zawierające znaki określone jako *blend_chars* zostanie zaindeksowane (parametr konfiguracji ***blend_mode***). Domyślnie zaindeksowany zostanie cały token, ale czasami będziemy potrzebowali innej reprezentacji. Przykładowo wyrażenie *@sphinxsearch!* będziemy potrzebowali w formie tokenów: *@sphinxsearch*, *sphinxsearch!*, *@sphinxsearch!* oraz *sphinxsearch*. Polegając na domyślnej konfiguracji uzyskamy wyłącznie tokeny *@sphinxsearch!* oraz *sphinxsearch*. Ustawiając tryby *trim_head*, *trim_tail* oraz *trim_none* osiągniemy postać jakiej oczekiwaliśmy.
 
-``` sql
+{% highlight sql %}
 sphinxQL> CALL KEYWORDS('@sphinxsearch! AT&T user@sphinxsearch.com', 'test_blend_chars');
 +------+-----------------------+-----------------------+
 | qpos | tokenized             | normalized            |
@@ -180,7 +180,7 @@ sphinxQL> CALL KEYWORDS('@sphinxsearch! AT&T user@sphinxsearch.com', 'test_blend
 | 5    | sphinxsearch.com      | sphinxsearch.com      |
 +------+-----------------------+-----------------------+
 10 rows in set (0.00 sec) 
-```
+{% endhighlight %}
 
 ### Pliki indeksu
 

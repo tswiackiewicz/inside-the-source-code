@@ -18,7 +18,7 @@ Definicja źródła danych w formacie **TSV** jest bardzo podobna do tej dla for
 
 Przykładowo:
 
-``` apache
+{% highlight apache %}
 #############################################################################
 ## source definition
 #############################################################################
@@ -37,15 +37,15 @@ source src5
     tsvpipe_attr_float          = attr4
     tsvpipe_attr_json           = attr5
 }
-```  
+{% endhighlight %}  
 
 Indeksowane dane powinny być zgodne z ustalonym formatem: pierwsza kolumna to identyfikator dokumentu a następnie wartości o typach danych w kolejności zdefiniowanej w konfiguracji.
 
-``` tsv
+{% highlight tsv %}
 1   Sample title-000001 Lorem dolor ipsum sit amet quam. Sed eget velit. Suspendisse....    100001  1   1423003008  100001.0002 {"msg": "sample doc-000001"}
 2   Sample title-000002 Lorem ipsum dolor sit amet felis sollicitudin mi quis enim......    100002  1   1423003008  100002.0005 {"msg": "sample doc-000002"}
 3   Sample title-000003 Lorem ipsum dolor sit amet felis sollicitudin mi quis enim......    100003  1   1423003008  100003.0004 {"msg": "sample doc-000003"} 
-```
+{% endhighlight %}
 
 ### Benchmark
 
