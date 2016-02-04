@@ -37,6 +37,6 @@ description: "Lista artykułów z podziałem na lata, miesiące, ..."
     {% when '12' %} {% assign month = "Gru" %}
   {% endcase %}
 
-  <li><a href="{{ site.url }}{{ post.url }}/">{{ post.title }}<span class="entry-date">{{ month }} <time datetime="{{ post.date | date_to_xmlschema }}" itemprop="datePublished">{{ post.date | date: "%d, %Y" }}</time></a></li>
+  <li><a href="{{ site.url }}{{ post.url }}">{{ post.title }}<span class="entry-date">{{ month }} <time datetime="{{ post.date | date_to_xmlschema }}" itemprop="datePublished">{{ post.date | date: "%d, %Y" }}</time></a></li>
  
 {% endfor %}

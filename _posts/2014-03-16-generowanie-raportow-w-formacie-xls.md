@@ -10,7 +10,7 @@ comments: true
 featured: false
 ---
 
-Bardzo często generowaniu raportów, listy kontaktów czy też innych zbiorów danych prezentowanych w postaci tabeli, towarzyszy eksport tych danych do formatu <abbr title="Comma Separated Value">CSV<abbr> bądź XLS (*Excel Binary File Format*). O ile w przypadku formatu CSV wygenerowanie takiego pliku jest proste, wydajne i dostępne dla każdego języka programowania, o tyle format XLS wymaga użycia dedykowanych bibliotek, a przy tym bardzo często wydajność takiego rozwiązania nie spełnia naszych oczekiwań. 
+Bardzo często generowaniu raportów, listy kontaktów czy też innych zbiorów danych prezentowanych w postaci tabeli, towarzyszy eksport tych danych do formatu <abbr title="Comma Separated Value">CSV</abbr> bądź XLS (*Excel Binary File Format*). O ile w przypadku formatu CSV wygenerowanie takiego pliku jest proste, wydajne i dostępne dla każdego języka programowania, o tyle format XLS wymaga użycia dedykowanych bibliotek, a przy tym bardzo często wydajność takiego rozwiązania nie spełnia naszych oczekiwań. 
 
 Po analizie istniejących rozwiązań dla języka PHP (jako podstawowego języka w codziennej pracy) zdecydowałem się przyjrzeć bliżej następującym bibliotekom:
 
@@ -20,13 +20,13 @@ Po analizie istniejących rozwiązań dla języka PHP (jako podstawowego języka
 - *[HExcel](http://code.google.com/p/hexcel/)*
 - *[MS-Excel Stream Handler](http://www.phpclasses.org/package/1919-PHP-Stream-wrapper-to-read-and-write-MS-Excel-files.html)*
 
-Pierwsze dwa rozwiązania (*PHPExcel*, *PEAR::Spreadsheet_Excel_Writer*) to bardzo złożone i zaawansowane biblioteki oferujące niemalże pełen zakres funkcjonalności *MS Excel*. Wadą tych rozwiązań jest bardzo mała wydajność oraz częste błędy <abbr title="Out Of Memory">OOM<abbr>. *WriteExcel* to port popularnej perlowej biblioteki *Spreadsheet::WriteExcel*. Niestety nie obsługuje kodowania *UTF-8*. Natomiast ostatnie dwie pozycje (*HExcel*, *MS-Excel Stream Handler*) to bardzo proste, szybkie i wydajne rozwiązania umożliwijące zapis pojedynczego arkusza w formacie *XLS*, ale podobnie jak *WriteExcel* nie umożliwiają zapisu w *UTF-8*.
+Pierwsze dwa rozwiązania (*PHPExcel*, *PEAR::Spreadsheet_Excel_Writer*) to bardzo złożone i zaawansowane biblioteki oferujące niemalże pełen zakres funkcjonalności *MS Excel*. Wadą tych rozwiązań jest bardzo mała wydajność oraz częste błędy <abbr title="Out Of Memory">OOM</abbr>. *WriteExcel* to port popularnej perlowej biblioteki *Spreadsheet::WriteExcel*. Niestety nie obsługuje kodowania *UTF-8*. Natomiast ostatnie dwie pozycje (*HExcel*, *MS-Excel Stream Handler*) to bardzo proste, szybkie i wydajne rozwiązania umożliwijące zapis pojedynczego arkusza w formacie *XLS*, ale podobnie jak *WriteExcel* nie umożliwiają zapisu w *UTF-8*.
 
 Z uwagi na wymagania wobec generowania raportów i eksportu danych do XLS (kodowanie *UTF-8*, duża wydajność oraz małe wymagania pamięciowe) postanowiłem wykorzystać kod z *WriteExcel*, *HExcel* oraz *MS-Excel Stream Handler*, ale z taką różnicą, że finalne rozwiązanie powinno obsługiwać kodowanie *UTF-8*.
 
 ## SimpleExcelStreamWriter
 
-Dlatego też konieczne było zapoznanie się z [dokumentacją](http://download.microsoft.com/download/2/4/8/24862317-78F0-4C4B-B355-C7B2C1D997DB/%5BMS-XLS%5D.pdf) formatu *XLS* a dokładniej <abbr title="Binary Interchange File Format">BIFF<abbr>. Efektem weekendu spędzonego na studiowaniu tej dokumentacji jest moja wersja klasy umożliwiającej zapis wiersz po wierszu do arkusza MS Excel - [SimpleExcelStreamWriter](https://github.com/tswiackiewicz/SimpleExcelStreamWriter). Przykładowe użycie:
+Dlatego też konieczne było zapoznanie się z [dokumentacją](http://download.microsoft.com/download/2/4/8/24862317-78F0-4C4B-B355-C7B2C1D997DB/%5BMS-XLS%5D.pdf) formatu *XLS* a dokładniej <abbr title="Binary Interchange File Format">BIFF</abbr>. Efektem weekendu spędzonego na studiowaniu tej dokumentacji jest moja wersja klasy umożliwiającej zapis wiersz po wierszu do arkusza MS Excel - [SimpleExcelStreamWriter](https://github.com/tswiackiewicz/SimpleExcelStreamWriter). Przykładowe użycie:
 
 {% highlight php %}
 $objExcelStream = new SimpleExcelStreamWriter('test.xls');

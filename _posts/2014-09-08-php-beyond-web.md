@@ -17,7 +17,7 @@ W książce, oprócz wspomnianego podrozdziału, czyli głównego obiektu mojego
 Z mojego punktu widzenia, szczególnie ciekawe były rozdziały poświęcone:
 
 * implementacji daemonów oraz przetwarzania zadań (*6. System software*)
-* <abbr title="Inter-Process Communication">IPC<abbr> (*7. Interacting with other software*)
+* <abbr title="Inter-Process Communication">IPC</abbr> (*7. Interacting with other software*)
 * wydajności, profile'ingu oraz optymalizacji (*9. Performance & stability - profiling and improving*)
 
 Dodatkowo, warto chociażby z ciekawości zapoznać się z rozdziałem poświęconym implementacji interface'ów umożliwiających interakcję z użytkownikiem - zaczynając od tekstowych a kończąc na rozwiązaniach graficznych, np. [wxPHP](http://wxphp.org/).

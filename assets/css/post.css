@@ -531,7 +531,7 @@ html, body, .notepad-post-container, .notepad-post-header {
   color: #fff; }
 
 pre {
-  word-wrap: break-word;
+  #word-wrap: break-word;
   margin-bottom: 1.5625rem; }
 
 code {

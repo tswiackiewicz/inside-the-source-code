@@ -22,11 +22,11 @@ Zdarza się także, że otrzymuję zapytanie dotyczące wybranego zagadnienia z 
 </p>
 
 <p>
-Moje doświadczenie zawodowowe to w głównej mierze <i><b>PHP</b></i> oraz <i><b>Java</b></i>. Zdarzało mi się także zakodzić w innych technologiach (<i>.NET</i>, <i>Python</i>, <i>Perl</i>, <i>JavaScript</i>) czy też dopisać fragmenty HTMLa i nie widzę przeszkód, aby wytwarzać <i>soft</i> w kolejnych technologiach. Ogólnie jestem zwolennikiem <i>language agnostic</i> - najważniejsze są dobre praktyki i odpowiednia jakość kodu. Dużą wagę przykładam, a przynajmniej staram się, do kodzenia zgodnie z duchem <i><b>Clean Code</b></i> czy też <i><b>Software Craftmanship</b></i>.    
+Moje doświadczenie zawodowowe to w głównej mierze <i><b>PHP</b></i> oraz <i><b>Java</b></i>. Zdarzało mi się także zakodzić w innych technologiach (<i>.NET</i>, <i>Python</i>, <i>Perl</i>, <i>JavaScript</i>) czy też dopisać fragmenty HTMLa i nie widzę przeszkód, aby wytwarzać <i>soft</i> w kolejnych technologiach. Ogólnie jestem zwolennikiem <i>language agnostic</i> (oczywiście ze swoimi preferencjami) - najważniejsze są dobre praktyki i odpowiednia jakość kodu. Dużą wagę przykładam, a przynajmniej staram się, do kodzenia zgodnie z duchem <i><b>Clean Code</b></i> czy też <i><b>Software Craftmanship</b></i>.    
 </p>
 
 <p>
-Z racji, iż praktycznie całą zawodową karierę należałem do zespołów mając styczność z <i><b>search engine'ami</b></i>, mogę stwierdzić iż moją specjalizacją są szeroko pojęte zagadnienia związane z wyszukiwaniem.
+Z racji, iż praktycznie całą zawodową karierę należałem do zespołów mających styczność z <i><b>search engine'ami</b></i>, mogę stwierdzić iż moją specjalizacją są szeroko pojęte zagadnienia związane z wyszukiwaniem.
 </p>
 
 <p>
