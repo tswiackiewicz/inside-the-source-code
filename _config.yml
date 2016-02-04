@@ -39,7 +39,7 @@ markdown:       kramdown
 highlighter:    rouge
 paginate:       5
 
-permalink:      /:categories/:title
+permalink:      /:categories/:title/
 
 kramdown:
   auto_ids:         true

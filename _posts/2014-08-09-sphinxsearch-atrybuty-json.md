@@ -12,7 +12,7 @@ featured: false
 
 Wiele z istniejących aplikacji zostało zbudowanych z wykorzystaniem baz danych. Cechą charakterystyczną tego rozwiązania jest to, iż przechowywane dane zgodne są z ustalonym schematem (*mappingiem*) tj. zbiorem nazw i typów danych atrybutów, np. id - long, name - string itd. Podobnie przedstawia się sytuacja w przypadku, gdy bazę danych zastąpimy rozwiązaniem znanym jako **SphinxSearch**. Tutaj również mamy jasno zdefiniowany zbiór kluczy (atrybutów) i odpowiadającym im wartości (wraz z typami danych). Dla większości przypadków taki sposób ogranizacji danych jest wystarczający, ale zdarzają się sytuacje, gdy dla danego klucza będziemy chcieli przechowywać (oraz wyszukiwać) dane o różnej strukturze w zależności od kontekstu. Przykładowo, nasza aplikacja to typowy sklep internetowy zawierający zbiór produktów. Dla większości z nich można zdefiniować wspólny zbiór cech (np. cena, nazwa, opis), ale w zależności od kategorii potrzebne będą indywidualne cechy, np. dla książek - liczba stron, laptopów - liczba zainstalowanej pamięci RAM, pojemność dysku twardego itd. Jednocześnie chcemy przechowywać produkty różnych kategorii w jednym zbiorze danych. Rozwiązaniem tego problemu jest przechowywanie zbioru atrybutów w formacie ***JSON***.
 
-W tym celu konieczne jest wprowadzenie zmian w konfiguracji, tak aby atrybuty w formacie <abbr title="JavaScript Object Notation">JSON<abbr> były indeksowane oraz wyszukiwanie. Definiujemy zatem jeden z atrybutów: ***sql_attr_json***, ***xmlpipe_attr_json*** bądź ***rt_attr_json***.
+W tym celu konieczne jest wprowadzenie zmian w konfiguracji, tak aby atrybuty w formacie <abbr title="JavaScript Object Notation">JSON</abbr> były indeksowane oraz wyszukiwanie. Definiujemy zatem jeden z atrybutów: ***sql_attr_json***, ***xmlpipe_attr_json*** bądź ***rt_attr_json***.
 
 {% highlight conf %}
 #############################################################################
@@ -63,9 +63,9 @@ Przykład: indeksujemy dokumenty JSON (pole *json_content*) postaci
     "gid"   : 2,
     "title" : "some title",
     "tags": [
-        "tag1",
-	    "tag2",
-	    "tag3"
+        "tag1", 
+        "tag2",
+        "tag3"
     ]
 } 
 {% endhighlight %}
@@ -101,7 +101,7 @@ SELECT
 FROM
 	test_json
 WHERE
-	json_content.uid > 455;
+	json_content.uid > 455
 ORDER BY
 	json_content.name ASC; 
 {% endhighlight %}

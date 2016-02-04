@@ -152,3 +152,49 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
 .php .xml {
   opacity: 0.5;
 }
+
+.highlight .language-conf .n,
+.highlight .language-conf .err,
+.highlight .language-conf .hljs-number,
+.highlight .language-conf .hljs-keyword {
+  color: #e51843;
+}
+
+.highlight .language-sql .hljs-operator,
+.highlight .language-sql .hljs-number {
+  color: #e6db74;
+}
+
+.highlight .language-sql .hljs-literal,
+.highlight .language-sql .k,
+.highlight .language-sql .n,
+.highlight .language-sql .p {
+  color: #f92672;
+}
+
+.highlight .language-sql .o {
+  color: #75715e;
+}
+
+.highlight .language-conf .m,
+.highlight .language-sql .nv,
+.highlight .language-sql .mi,
+.highlight .language-json .mi {
+  color: #23241f;
+}
+
+.highlight .language-json .p {
+  color: #f92672;
+}
+
+.highlight .language-json .hljs-number {
+  color: #e6db74;
+}
+
+.highlight .language-bash,
+.highlight .language-bash span {
+  color: #e51843;
+}
+
+
+

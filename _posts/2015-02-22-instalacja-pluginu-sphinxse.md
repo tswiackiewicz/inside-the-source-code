@@ -16,7 +16,7 @@ W artykule zatytułowanym [SphinxSE - Sphinx Storage Engine]({{ site.url}}/sphin
 
 Dodatkowy engine (jak choćby *MyISAM*, *InnoDB*, *Memory* itd. ) dla baz danych z rodziny MySQL (*MySQL*, *MariaDB*, *Percona Server*) dostarczany jest w postaci pluginu:
 
-{% highlight sql %}
+{% highlight bash %}
 [mysql]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
 {% endhighlight %}
 
@@ -95,7 +95,7 @@ mysql stop/waiting
 mysql start/running, process 6662
 {% endhighlight %}
 
-{% highlight sql %}
+{% highlight bash %}
 [Percona]> INSTALL PLUGIN sphinx SONAME 'ha_sphinx.so';
 {% endhighlight %}
 
