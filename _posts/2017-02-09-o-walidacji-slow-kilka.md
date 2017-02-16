@@ -158,7 +158,7 @@ class UserFactory
 
 Dobrą praktyką jest budowanie domenowych bytów w oparciu o *Value Object*. Z jednej strony jej konstrukcja znacznie się uprości - będziemy mieli *VO*, które z definicji są już poprawne a więc i cała encja będzie poprawna (uwzględniając generyczne wymagania biznesowe). Z drugiej strony, za pomocą VO możemy definiować ogólne reguły biznesowe, np. *UserPassword*. Bardzo łatwo w ten sposób zrealizować nasze założenia odnośnie *fail fast* - *RegisterUserCommand* składamy z Value Objects, jeśli będą niepoprawne, command nie zostanie utworzony, flow zostanie przerwany zanim połączymy się z bazą czy innym storage za pomocą repository.
  
-### Sygnaliowanie błędów walidacji
+### Sygnalizowanie błędów walidacji
  
 Z uwagi na fakt, iż walidacja realizowana jest na różnych warstwach, sposób sygnalizowania błędów będzie różnił się w zależności od miejsca jego wystąpienia. Na poziomie domeny, pojedynczy błąd będzie powodował zakończenie dalszego działania (np. użytkownik o podanym adresie jest już zarejestrowany w systemie), podczas gdy błędy formularza powinny być agregowane tj. każdy błąd jest istotny, do UI przekazujemy całą kolekcję błędów, aby móc to odpowiednio zasygnalizować użytkownikowi.
    
