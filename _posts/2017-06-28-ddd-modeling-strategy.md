@@ -14,7 +14,7 @@ Inspiracją do publikacji [poprzedniego artykułu](http://tswiackiewicz.github.i
     
 Szukając przypadku użycia dla przykładowej implementacji, chciałem aby był możliwie najprostszy, a przy tym pozwalał na realizację nieco bardziej złożonych aspektów, jak choćby sprawdzanie unikalności czy użycie *Domain Service*. Wybór padł na jeden z najpopularniejszych przypadków użycia - kontekst użytkownika: rejestracja, aktywacja, zmiana hasła, wyrejestrowanie. 
     
-Jako dodatkowy cel tego *eksperymentu* obrałem różne strategie modelowania, poczynając od najprostszej, poprzez flow oparty o zdarzenia, na *Event Sourcingu* kończąc. 
+Jako dodatkowy cel tego eksperymentu obrałem różne strategie modelowania, poczynając od najprostszej, poprzez flow oparty o zdarzenia, na *Event Sourcingu* kończąc. 
 
 Zacznijmy jednak od tego, co nie zostało w pełni uwzględnione w poprzednim artykule, czyli [CQRS](https://martinfowler.com/bliki/CQRS.html).     
 
@@ -22,11 +22,12 @@ Zacznijmy jednak od tego, co nie zostało w pełni uwzględnione w poprzednim ar
 
 Zgodnie z koncepcją CQRS (*ang. Command Query Responsibility Segregation*) opracowaną przez [Grega Younga](https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf) mamy rozdzielnie odczytów od zapisów. Przedstawiony [poprzednio](http://tswiackiewicz.github.io/inside-the-source-code/architecture/ddd-layered-architecture/) zarys podziału na warstwy nie realizował tego podziału w pełni - brakowało tam odseparowanego *Read Modelu*.
   
-Co więcej, w związku podziałem na *Read Model* (odczyty) oraz *Write Model* (zapisy), pewne elementy języka np. *UserId* powinny być współdzielone. Zamodelowane zostało to w postaci warstwy *Shared Kernel*.
+Co więcej, w związku podziałem na *Read Model* (odczyty) oraz *Write Model* (zapisy), pewne elementy języka (np. *UserId*) powinny być współdzielone. Zamodelowane zostało to w postaci warstwy *Shared Kernel*.
    
 Rozwijając wspomniany model warstwowy o przedstawione tutaj elementy, otrzymaliśmy następującą strukturę katalogów stanowiącą bazę dla naszej implementacji:
 
 {% highlight bash %}
+src/
 ├── Application
 ├── DomainModel
 ├── Infrastructure
@@ -41,9 +42,9 @@ Na poziomie *Infrastructure* znajdziemy konkretne implementacje elementów (np. 
 
 ### Zdarzenia
 
-Nieco odmienną strategią względem opisanej w poprzedniej sekcji jest ta oparta o zdarzenia. U jej podstaw leży koncepcja, gdzie każda akcja w systemie sygnalizowana jest poprzez zdarzenie, np. zmiana hasła użytkownika spowoduje wygenerowanie zdarzenia *UserPasswordChanged*, aktywacja użytkownika - *UserActivated* itd. Dla każdego ze zdarzeń rejestrowany jest dedykowany handler, w którym to realizowana jest właściwa obsługa danego zdarzenia. 
+Nieco odmienną strategią względem opisanej w poprzedniej sekcji jest ta oparta o zdarzenia. U jej podstaw leży koncepcja, gdzie każda akcja w systemie sygnalizowana jest poprzez zdarzenie, np. zmiana hasła użytkownika spowoduje wygenerowanie zdarzenia *UserPasswordChangedEvent*, aktywacja użytkownika - *UserActivatedEvent* itd. Dla każdego ze zdarzeń rejestrowany jest dedykowany handler, w którym to realizowana jest właściwa obsługa danego zdarzenia. 
 
-Podstawowa różnica w stosunku do poprzedniej strategii jest taka, że w *Domain Modelu* po zrealizowaniu logiki biznesowej generowane jest zdarzenie i dla tego zdarzenia na poziomie zarejestrowanego handlera dane są persystowane. 
+Podstawowa różnica w stosunku do poprzedniej strategii jest taka, że w *Domain Modelu* po zrealizowaniu logiki biznesowej generowane jest zdarzenie i dla tego zdarzenia na poziomie zarejestrowanego handlera dane są zapisywane do storage'u. 
 
 {% highlight php %}
 /**
@@ -85,7 +86,7 @@ Takie podejście pozwala, aby kod w *Application Service* koncentrował się na 
 
 ### Event sourcing
 
-Ostatnia z wybranych strategii modelowania jest rozwinięciem idei flow opartego o zdarzenia. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html) charakteryzuje to, że stan obiektów odtwarzany jest na podstawie strumienia zdarzeń, które wystąpiły w systemie. Tak działają chociażby systemy bankowe, gdzie aktualny stan konta to produkt kolejnych operacji: wpłaty, wypłaty, transfery, płatności itp. Dzięki temu możemy odtworzyć stan systemu w dowolnym momencie, a pondato nie tracimy informacji z kroków pośrednich (np. produkt dodany do koszyka, produkt usunięty z koszyka).
+Ostatnia z wybranych strategii modelowania jest rozwinięciem idei flow opartego o zdarzenia. [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html) charakteryzuje to, że stan obiektów odtwarzany jest na podstawie strumienia zdarzeń, które wystąpiły w systemie. Tak działają chociażby systemy bankowe, gdzie aktualny stan konta to produkt kolejnych operacji: wpłaty, wypłaty, transfery, płatności itp. Dzięki temu możemy odtworzyć stan systemu w dowolnym momencie, a pondato nie tracimy informacji z kroków pośrednich (np. 1. produkt dodany do koszyka, 2. produkt usunięty z koszyka -> pusty koszyk).
 
 Analogiczie do poprzedniego podejścia *Read Model* jest odseparowany, dla zdarzenia rejestrowany jest handler. Zasadnicza różnica jest taka, że każde zdarzenie, które wystąpiło w systemie dodawane jest do tzw. *Event Loga* a persystencja realizowana w postaci projekcji na podstawie informacji zawartych w zdarzeniach. 
 
@@ -113,7 +114,7 @@ Cechą wspólną wszystkich omówionych tutaj strategii modelowania (klasyczna, 
  
 Przechodząc od podejścia klasycznego, a kończąc na podejściu opartym o *ES* możemy zobaczyć jak kod ewoluuje w stronę [SRP](http://www.oodesign.com/single-responsibility-principle.html), skupia się wyłącznie na realizacji zadań ze swojego obszaru zainteresowań. Pewne elementy w tej implementacji zostały celowo uproszczone. Założenie było takie, że kod ma być maksymalnie prosty (POPO - ang. *Plan Old PHP Object*), aby był łatwy do adaptacji w dowolnym projekcie a rozmieszczenie poszczególnych bytów na warstwach nie było zaciemniane przez implementację wymuszoną przez dany framework.
 
-Koniec końców, możemy znaleźć dużo publikacji z teoretycznymi rozważaniami, a konkretnych przykładów jak przełożyć to na kod jest już niewiele (moją implementację znajdziecie [tutaj](https://github.com/tswiackiewicz/ddd-workshops/)). Zachęcam do eksperymentów - proponowany model można dowolnie rozwijać, upraszczać, można śmiało mieszać strategie modelowania. Wszystko zależy od potrzeb oraz skomplikowania domeny i projektu.  
+Koniec końców, możemy znaleźć dużo publikacji z teoretycznymi rozważaniami, a konkretnych przykładów jak przełożyć to na kod jest już niewiele (moją implementację znajdziecie [tutaj](https://github.com/tswiackiewicz/ddd-workshops/), codebase PHP ale można ją bez problemów zmigrować na dowolny obiektowy język programowania). Zachęcam do eksperymentów - proponowany model można dowolnie rozwijać, upraszczać, można śmiało mieszać strategie modelowania. Wszystko zależy od potrzeb oraz skomplikowania domeny i projektu.  
 
 Znajdź swoją strategię modelowania w Domain Driven Design!
 
@@ -121,6 +122,7 @@ Znajdź swoją strategię modelowania w Domain Driven Design!
 
 * [https://github.com/tswiackiewicz/ddd-workshops/](https://github.com/tswiackiewicz/ddd-workshops/)  
 * [https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf](https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf)
+* [https://martinfowler.com/bliki/CQRS.html](https://martinfowler.com/bliki/CQRS.html)
 * [https://martinfowler.com/eaaDev/EventSourcing.html](https://martinfowler.com/eaaDev/EventSourcing.html)    
 * [http://aspiringcraftsman.com/2008/01/03/art-of-separation-of-concerns/](http://aspiringcraftsman.com/2008/01/03/art-of-separation-of-concerns/)
 * [https://github.com/codeliner/php-ddd-cargo-sample](https://github.com/codeliner/php-ddd-cargo-sample)
