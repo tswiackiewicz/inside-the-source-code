@@ -117,7 +117,7 @@ class RegisteredUsers
     
     public function registerNew(RegisteredAccount $account): RegisteredUserId
     {
-        $this->identityProvider->registerIdentity($account->identity();
+        $this->identityProvider->registerIdentity($account->identity());
         
         // ...
     }

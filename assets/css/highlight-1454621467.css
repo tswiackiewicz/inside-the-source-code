@@ -196,5 +196,8 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
   color: #e51843;
 }
 
-
-
+.highlight .na { color: #f92672 } /* Name.Attribute */
+.highlight .nv { color: #f8f8f2; text-decoration: none; } /* Name.Variable */
+.highlight .nx { color: #a6e22e } /* Name.Other */
+.highlight .o { color: #f8f8f2 } /* Operator */
+.highlight .p { color: #ffffff } /* Punctuation */
