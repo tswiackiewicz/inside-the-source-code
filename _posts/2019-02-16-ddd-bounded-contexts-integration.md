@@ -134,7 +134,7 @@ Osobiście zachęcam Was do tego, aby domena była maksymalnie skupiona na reali
 
 > Keep your domain clean and simple   
 
-Na koniec podziękowania dla [Thomas Ploch](https://twitter.com/tPl0ch), [Matthias Breddin](https://twitter.com/lunetics) oraz [Michał Giergielewicz](https://pl.linkedin.com/in/michalgiergielewicz) za wspólne modelowanie podczas *DDD Europe 2019*.
+Na koniec podziękowania dla [Thomas Ploch](https://twitter.com/tPl0ch), [Matthias Breddin](https://twitter.com/lunetics) oraz [Michał Giergielewicz](https://pl.linkedin.com/in/michalgiergielewicz) za wspólne modelowanie podczas *DDD Europe 2019* oraz inspirację do napisania tego artykułu.
 
 <br />Przydatne linki:
 
