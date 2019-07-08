@@ -4,7 +4,7 @@ disqus_shortname:   insidethesourcecode
 share:              true
 dropcap:            true
 readtime:           true
-url:                /inside-the-source-code
+url:                http://tswiackiewicz.github.io/inside-the-source-code
 
 # owner/author information
 owner:
