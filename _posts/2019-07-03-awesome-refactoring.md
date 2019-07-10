@@ -106,6 +106,7 @@ Zapamiętajmy
 * [https://refactoring.com/](https://refactoring.com/)
 * [https://refactoring.guru/refactoring](https://refactoring.guru/refactoring)
 * [https://sourcemaking.com/refactoring](https://sourcemaking.com/refactoring)
+* [https://dzone.com/articles/what-is-refactoring](https://dzone.com/articles/what-is-refactoring)
 * [https://codeclimate.com/blog/when-is-it-time-to-refactor/](https://codeclimate.com/blog/when-is-it-time-to-refactor/)
 * [https://techbeacon.com/app-dev-testing/rewrites-vs-refactoring-17-essential-reads-developers](https://techbeacon.com/app-dev-testing/rewrites-vs-refactoring-17-essential-reads-developers)
 * [https://github.com/RefactoringGuru/refactoring-examples](https://github.com/RefactoringGuru/refactoring-examples) 
