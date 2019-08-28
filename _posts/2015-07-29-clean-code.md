@@ -5,7 +5,7 @@ description: "Ostatnio miałem okazje ponownie przeczytać jedną z najważniej
 headline: 
 modified: 2015-07-29
 category: architecture
-tags: [clean code, software craftmanship, uncle bob, dry, kiss, yagni, solid, object oriented design, best practices]
+tags: [clean code, software craftsmanship, uncle bob, dry, kiss, yagni, solid, object oriented design, best practices]
 comments: true
 featured: false
 ---

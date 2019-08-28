@@ -5,7 +5,7 @@ description: "Jakiś czas temu miałem przyjemność uczestniczyć w warsztatach
 headline: 
 modified: 2017-02-01
 category: architecture
-tags: [code review, software craftmanship]
+tags: [code review, software craftsmanship]
 comments: true
 featured: false
 ---

@@ -144,7 +144,12 @@ Na koniec podziękowania dla [Thomas Ploch](https://twitter.com/tPl0ch), [Matthi
 * [https://www.toptal.com/scala/context-validation-in-domain-driven-design](https://www.toptal.com/scala/context-validation-in-domain-driven-design)
 * [https://jimmybogard.com/domain-command-patterns-validation/](https://jimmybogard.com/domain-command-patterns-validation/)
 * [https://www.culttt.com/2014/11/26/strategies-integrating-bounded-contexts/](https://www.culttt.com/2014/11/26/strategies-integrating-bounded-contexts/)
-* [https://markhneedham.com/blog/2009/07/07/domain-driven-design-anti-corruption-layer/](https://markhneedham.com/blog/2009/07/07/domain-driven-design-anti-corruption-layer/)
 * [https://medium.com/nick-tune-tech-strategy-blog/sharing-databases-within-bounded-contexts-5f7ca6216097](https://medium.com/nick-tune-tech-strategy-blog/sharing-databases-within-bounded-contexts-5f7ca6216097)
+* [https://markhneedham.com/blog/2009/03/30/ddd-recognising-relationships-between-bounded-contexts/](https://markhneedham.com/blog/2009/03/30/ddd-recognising-relationships-between-bounded-contexts/)
+* [https://markhneedham.com/blog/2009/07/04/domain-driven-design-conformist/](https://markhneedham.com/blog/2009/07/04/domain-driven-design-conformist/)
+* [https://markhneedham.com/blog/2009/07/07/domain-driven-design-anti-corruption-layer/](https://markhneedham.com/blog/2009/07/07/domain-driven-design-anti-corruption-layer/)
+* [https://vaadin.com/tutorials/ddd/strategic_domain_driven_design](https://vaadin.com/tutorials/ddd/strategic_domain_driven_design)
+* [https://medium.com/ingeniouslysimple/context-mapping-in-domain-driven-design-9063465d2eb8](https://medium.com/ingeniouslysimple/context-mapping-in-domain-driven-design-9063465d2eb8)
+* [http://www.informit.com/articles/article.aspx?p=2738465&seqNum=3](http://www.informit.com/articles/article.aspx?p=2738465&seqNum=3)
   
 
