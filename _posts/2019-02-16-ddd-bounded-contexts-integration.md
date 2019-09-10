@@ -126,7 +126,7 @@ class RegisteredUsers
 }
 {% endhighlight %}
 
-To rozwiązanie ma tą niedpoważalną zalete, iż bardzo wyraźnie widzimy jak wygląda flow, a pośrednie odwołanie na zewnątrz, w tym wypadku, jest jego nieodłącznym elementem.
+To rozwiązanie ma tą niepodważalną zalete, iż bardzo wyraźnie widzimy jak wygląda flow, a pośrednie odwołanie na zewnątrz, w tym wypadku, jest jego nieodłącznym elementem.
 
 Czas podsumować nasze rozważania. Każda z przedstawionych powyżej propozycji będzie lepiej sprawowała się w określonych warunkach, w innych zupełnie nie będzie się sprawdzała. Jeśli chodzi o sprawdzanie poprawności oraz wzbogacanie danych - tutaj nie ma lepszego rozwiązania: wszystko zależy od Waszych preferencji, standardów oraz tego w jak dużym produkcie pracujecie.
 
